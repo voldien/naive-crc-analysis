@@ -1,0 +1,3 @@
+[submodule "extern/CRCpp"]
+	path = extern/CRCpp
+	url = https://github.com/d-bahr/CRCpp.git

@@ -4,3 +4,6 @@
 [submodule "extern/cxxopts"]
 	path = extern/cxxopts
 	url = https://github.com/jarro2783/cxxopts.git
+[submodule "extern/marl"]
+	path = extern/marl
+	url = https://github.com/google/marl.git

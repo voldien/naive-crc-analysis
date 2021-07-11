@@ -55,10 +55,13 @@ int main(int argc, const char **argv) {
 	uint32_t numTasks = marl::Thread::numLogicalCPUs() * nrChunk;
 	uint64_t localsamples = samples / numTasks;
 
-	cxxopts::Options options("MyProgram", "One line description of MyProgram");
+	cxxopts::Options options("Naive CRC Analysis", "");
 	options.add_options()("d,debug", "Enable debugging") // a bool parameter
-		("i,integer", "Int param", cxxopts::value<int>())("f,file", "File name", cxxopts::value<std::string>())(
-			"v,verbose", "Verbose output", cxxopts::value<bool>()->default_value("false"));
+		("i,integer", "Int param", cxxopts::value<int>())
+		("v,verbose", "Verbose output", cxxopts::value<bool>()->default_value("false"))
+		("c,crc", "CRC", cxxopts::value<int>()->default_value(0))
+		("p,data-chunk", "DataChunk", cxxopts::value<int>()->default_value(0))
+		("s,samples", "Samples", cxxopts::value<int>()->default_value(0));
 
 	cxxopts::value<std::string>()->default_value("value");
 	cxxopts::value<std::string>()->implicit_value("implicit");

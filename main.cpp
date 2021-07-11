@@ -15,14 +15,14 @@
 #include <iostream> // Includes ::std::cout
 #include <vector>
 
-void generateRandomMessage(std::vector<unsigned int> &data, int size, RandGenerator &gen) {
-	for (int i = 0; i < size; i++) {
+void generateRandomMessage(std::vector<unsigned int> &data, unsigned int size, RandGenerator &gen) {
+	for (unsigned int i = 0; i < size; i++) {
 		data[i] = gen.getRandom();
 	}
 }
 
 void addRandomNoise(const std::vector<unsigned int> &in, std::vector<unsigned int> &out, RandGenerator &gen) {
-	for (int i = 0; i < in.size(); i++) {
+	for (unsigned int i = 0; i < in.size(); i++) {
 		out[i] = in[i] ^ (unsigned int)gen.getRandom() + (unsigned int)(gen.getRandom() * 0.0001f);
 	}
 }
@@ -59,12 +59,10 @@ int main(int argc, const char **argv) {
 	options.add_options()("d,debug", "Enable debugging") // a bool parameter
 		("i,integer", "Int param", cxxopts::value<int>())
 		("v,verbose", "Verbose output", cxxopts::value<bool>()->default_value("false"))
-		("c,crc", "CRC", cxxopts::value<int>()->default_value(0))
-		("p,data-chunk", "DataChunk", cxxopts::value<int>()->default_value(0))
-		("s,samples", "Samples", cxxopts::value<int>()->default_value(0));
+		("c,crc", "CRC", cxxopts::value<int>())
+		("p,data-chunk", "DataChunk", cxxopts::value<int>())
+		("s,samples", "Samples", cxxopts::value<int>());
 
-	cxxopts::value<std::string>()->default_value("value");
-	cxxopts::value<std::string>()->implicit_value("implicit");
 	auto result = options.parse(argc, (char **&)argv);
 	// result["opt"].as<float>();
 
@@ -78,13 +76,13 @@ int main(int argc, const char **argv) {
 	// Create a WaitGroup with an initial count of numTasks.
 	marl::WaitGroup saidHello(numTasks);
 
-	for (int i = 0; i < numTasks; i++) {
+	for (uint32_t i = 0; i < numTasks; i++) {
 		marl::schedule([&] { // All marl primitives are capture-by-value.
 			std::vector<unsigned int> data(dataSize);
 			std::vector<unsigned int> noise(dataSize);
 			PGSRandom randGen;
 
-			for (int i = 0; i < localsamples; i++) {
+			for (uint64_t i = 0; i < localsamples; i++) {
 				generateRandomMessage(data, dataSize, randGen);
 				addRandomNoise(data, noise, randGen);
 
@@ -101,7 +99,6 @@ int main(int argc, const char **argv) {
 					originalCRC == noiseCRC) {
 					nrCollision++;
 				}
-				// addRandomNoise(data, noise);
 			}
 			// Decrement the WaitGroup counter when the task has finished.
 

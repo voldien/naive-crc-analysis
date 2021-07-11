@@ -1,41 +1,29 @@
 #define CRCPP_USE_CPP11
 #define CRCPP_INCLUDE_ESOTERIC_CRC_DEFINITIONS
+#include "RandGenerator.h"
 #include <CRC.h>
 
+#include "marl/defer.h"
+#include "marl/event.h"
+#include "marl/scheduler.h"
+#include "marl/thread.h"
+#include "marl/waitgroup.h"
 #include <cstdint> // Includes ::std::uint32_t
 #include <cstring>
+#include <cxxopts.hpp>
 #include <iomanip>	// Includes ::std::hex
 #include <iostream> // Includes ::std::cout
 #include <vector>
 
-// *Really* minimal PCG32 code / (c) 2014 M.E. O'Neill / pcg-random.org
-// Licensed under Apache License 2.0 (NO WARRANTY, etc. see website)
-
-typedef struct {
-	uint64_t state;
-	uint64_t inc;
-} pcg32_random_t;
-pcg32_random_t rng;
-
-uint32_t pcg32_random_r(pcg32_random_t *rng) {
-	uint64_t oldstate = rng->state;
-	// Advance internal state
-	rng->state = oldstate * 6364136223846793005ULL + (rng->inc | 1);
-	// Calculate output function (XSH RR), uses old state for max ILP
-	uint32_t xorshifted = ((oldstate >> 18u) ^ oldstate) >> 27u;
-	uint32_t rot = oldstate >> 59u;
-	return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
-}
-
-void generateRandomMessage(std::vector<unsigned int> &data, int size) {
+void generateRandomMessage(std::vector<unsigned int> &data, int size, RandGenerator &gen) {
 	for (int i = 0; i < size; i++) {
-		data[i] = pcg32_random_r(&rng);
+		data[i] = gen.getRandom();
 	}
 }
 
-void addRandomNoise(const std::vector<unsigned int> &in, std::vector<unsigned int> &out) {
+void addRandomNoise(const std::vector<unsigned int> &in, std::vector<unsigned int> &out, RandGenerator &gen) {
 	for (int i = 0; i < in.size(); i++) {
-		out[i] = in[i] ^ (unsigned int)pcg32_random_r(&rng) + (unsigned int)(pcg32_random_r(&rng) * 0.0001f);
+		out[i] = in[i] ^ (unsigned int)gen.getRandom() + (unsigned int)(gen.getRandom() * 0.0001f);
 	}
 }
 
@@ -50,39 +38,88 @@ uint32_t compute32Xor(const std::vector<unsigned int> &data) {
 uint32_t compute8Xor(const std::vector<unsigned int> &data) {
 	uint8_t *p = (uint8_t *)data.data();
 	uint8_t checksum = p[0];
-	for (int i = 1; i < data.size() * 4; i++) {
+	for (int i = 1; i < data.size() * sizeof(unsigned int); i++) {
 		checksum ^= p[i];
 	}
-	return checksum;
+	return checksum & 0x7F;
 }
 
 int main(int argc, const char **argv) {
 
-	int samples = 10000000;
-	int nrCollision = 0;
+	uint64_t samples = 1000000000;
+	uint32_t dataSize = 5;
+	uint32_t nrChunk = 2000;
+	std::atomic_uint32_t nrCollision = 0;
+	std::atomic_uint64_t nrOfSamples = 0;
 
-	std::vector<unsigned int> data(100);
-	std::vector<unsigned int> noise(100);
-	srand(time(NULL));
+	uint32_t numTasks = marl::Thread::numLogicalCPUs() * nrChunk;
+	uint64_t localsamples = samples / numTasks;
 
-	for (int i = 0; i < samples; i++) {
-		generateRandomMessage(data, 100);
-		addRandomNoise(data, noise);
+	cxxopts::Options options("MyProgram", "One line description of MyProgram");
+	options.add_options()("d,debug", "Enable debugging") // a bool parameter
+		("i,integer", "Int param", cxxopts::value<int>())("f,file", "File name", cxxopts::value<std::string>())(
+			"v,verbose", "Verbose output", cxxopts::value<bool>()->default_value("false"));
 
-		std::uint32_t originalCRC = CRC::Calculate(data.data(), data.size() * sizeof(unsigned int), CRC::CRC_32());
-		std::uint32_t noiseCRC = CRC::Calculate(noise.data(), noise.size() * sizeof(unsigned int), CRC::CRC_32());
+	cxxopts::value<std::string>()->default_value("value");
+	cxxopts::value<std::string>()->implicit_value("implicit");
+	auto result = options.parse(argc, (char **&)argv);
+	// result["opt"].as<float>();
 
-		// std::uint32_t originalCRC = compute8Xor(data);
-		// std::uint32_t noiseCRC = compute8Xor(noise);
+	marl::Scheduler scheduler(marl::Scheduler::Config::allCores());
+	scheduler.bind();
+	defer(scheduler.unbind()); // Automatically unbind before returning.
 
-		if (std::strncmp((const char *)data.data(), (const char *)noise.data(), data.size() * 4) != 0 &&
-			originalCRC == noiseCRC) {
+	// Create an event that is manually reset.
+	marl::Event sayHello(marl::Event::Mode::Manual);
 
-			nrCollision++;
-		}
+	// Create a WaitGroup with an initial count of numTasks.
+	marl::WaitGroup saidHello(numTasks);
 
-		// std::cout << std::hex << originalCRC << std::endl;
-		// std::cout << std::hex << noiseCRC << std::endl;
+	for (int i = 0; i < numTasks; i++) {
+		marl::schedule([&] { // All marl primitives are capture-by-value.
+			std::vector<unsigned int> data(dataSize);
+			std::vector<unsigned int> noise(dataSize);
+			PGSRandom randGen;
+
+			for (int i = 0; i < localsamples; i++) {
+				generateRandomMessage(data, dataSize, randGen);
+				addRandomNoise(data, noise, randGen);
+
+				// std::uint32_t originalCRC =
+				// 	CRC::Calculate(data.data(), data.size() * sizeof(unsigned int), CRC::CRC_5_USB());
+				// std::uint32_t noiseCRC =
+				// 	CRC::Calculate(noise.data(), noise.size() * sizeof(unsigned int), CRC::CRC_5_USB());
+
+				std::uint32_t originalCRC = compute8Xor(data);
+				std::uint32_t noiseCRC = compute8Xor(noise);
+
+				if (std::strncmp((const char *)data.data(), (const char *)noise.data(),
+								 data.size() * sizeof(unsigned int)) != 0 &&
+					originalCRC == noiseCRC) {
+					nrCollision++;
+				}
+				// addRandomNoise(data, noise);
+			}
+			// Decrement the WaitGroup counter when the task has finished.
+
+			// Blocking in a task?
+			// The scheduler will find something else for this thread to do.
+			uint64_t _current_nr_samples = nrOfSamples.fetch_add(localsamples);
+
+			const double _collisionPerc = (double)nrCollision.load() / (double)_current_nr_samples;
+			printf("CRC8 collision: %ld, %d, %f!\n", _current_nr_samples, nrCollision.load(), _collisionPerc);
+			defer(saidHello.done());
+			sayHello.wait();
+
+		});
 	}
-	printf("CRC8 collision %d, %f!\n", nrCollision, (float)nrCollision / (float)samples);
+
+	double collisionPerc = (double)nrCollision.load() / (double)samples;
+
+	sayHello.signal(); // Unblock all the tasks.
+
+	saidHello.wait(); // Wait for all tasks to complete.
+
+	printf("CRC8 collision %d, %f!\n", nrCollision.load(), collisionPerc * 100);
+	return EXIT_SUCCESS;
 }

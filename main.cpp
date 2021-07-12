@@ -60,7 +60,7 @@ int main(int argc, const char **argv) {
 	try {
 		uint64_t samples;
 		uint32_t dataSize;
-		uint32_t nrChunk = 2000;
+		uint32_t nrChunk;
 		std::atomic_uint32_t nrCollision = 0;
 		std::atomic_uint64_t nrOfSamples = 0;
 

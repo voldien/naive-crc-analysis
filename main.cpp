@@ -27,6 +27,15 @@ void addRandomNoise(const std::vector<unsigned int> &in, std::vector<unsigned in
 	}
 }
 
+void computeDiff(const std::vector<unsigned int> &in, std::vector<unsigned int> &out) {
+	std::vector<unsigned int> p(in.size());
+	for (unsigned int i = 0; i < in.size(); i++) {
+		p[i] = out[i] ^ in[i];
+	}
+}
+
+void perform_error_correction(const std::vector<unsigned int> &in, std::vector<unsigned int> &out) {}
+
 uint32_t compute32Xor(const std::vector<unsigned int> &data) {
 	uint32_t checksum = data[0];
 	for (int i = 1; i < data.size(); i++) {

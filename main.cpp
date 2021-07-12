@@ -63,6 +63,7 @@ int main(int argc, const char **argv) {
 		uint32_t nrChunk;
 		std::atomic_uint32_t nrCollision = 0;
 		std::atomic_uint64_t nrOfSamples = 0;
+		std::atomic_uint32_t nrTaskCompleted = 0;
 
 		cxxopts::Options options("Naive CRC Analysis", "");
 		options.add_options()("d,debug", "Enable debugging") // a bool parameter
@@ -71,13 +72,13 @@ int main(int argc, const char **argv) {
 				"c,crc", "CRC", cxxopts::value<int>())("p,data-chunk-size", "DataChunk",
 													   cxxopts::value<int>()->default_value("5"))(
 				"e,error-correction", "Error Correction", cxxopts::value<bool>()->default_value("false"))(
-				"s,samples", "Samples", cxxopts::value<int>()->default_value("1000000"))
+				"s,samples", "Samples", cxxopts::value<uint64_t>()->default_value("1000000"))
 				("t,task-size", "Task", cxxopts::value<int>()->default_value("2000"));
 
 		auto result = options.parse(argc, (char **&)argv);
 
 		dataSize = result["data-chunk-size"].as<int>();
-		samples = result["samples"].as<int>();
+		samples = result["samples"].as<uint64_t>();
 		nrChunk = result["task-size"].as<int>();
 
 		/*	*/
@@ -124,9 +125,10 @@ int main(int argc, const char **argv) {
 				// Blocking in a task?
 				// The scheduler will find something else for this thread to do.
 				uint64_t _current_nr_samples = nrOfSamples.fetch_add(localsamples);
+				uint32_t _current_number_completed_task = nrTaskCompleted.fetch_add(1);
 
 				const double _collisionPerc = (double)nrCollision.load() / (double)_current_nr_samples;
-				printf("\rCRC: %s, NumberOfSamples %ld, collision: [%d,%lf]", "CRC8", _current_nr_samples,
+				printf("\rCRC: %s, [%d/%d] NumberOfSamples %ld, collision: [%d,%lf]", "CRC8", _current_number_completed_task, numTasks, _current_nr_samples,
 					   nrCollision.load(), _collisionPerc);
 				fflush(stdout);
 

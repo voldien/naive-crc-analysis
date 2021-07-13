@@ -71,9 +71,10 @@ int main(int argc, const char **argv) {
 															  cxxopts::value<bool>()->default_value("false"))(
 				"c,crc", "CRC", cxxopts::value<int>())("p,data-chunk-size", "DataChunk",
 													   cxxopts::value<int>()->default_value("5"))(
-				"e,error-correction", "Error Correction", cxxopts::value<bool>()->default_value("false"))(
+				"e,error-correction", "Perform Error Correction", cxxopts::value<bool>()->default_value("false"))(
 				"s,samples", "Samples", cxxopts::value<uint64_t>()->default_value("1000000"))
-				("t,task-size", "Task", cxxopts::value<int>()->default_value("2000"));
+				("t,task-size", "Task", cxxopts::value<int>()->default_value("2000"))
+				("m,margin-error", "Margin of Error", cxxopts::value<int>()->default_value("1"));
 
 		auto result = options.parse(argc, (char **&)argv);
 

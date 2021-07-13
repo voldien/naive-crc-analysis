@@ -19,14 +19,26 @@
 #include <vector>
 
 enum CRCAlgorithm {
+	CRC7,
 	CRC8,
+	CRC10,
+	CRC11,
+	CRC15,
+	CRC24,
+	CRC30,
+	CRC32,
+	CRC64,
 	XOR8,
 	XOR8_MASK_MAJOR_BIT,
-	CRC7,
 };
 
 static std::unordered_map<std::string, CRCAlgorithm> const table = {
-	{"crc8", CRCAlgorithm::CRC8}, {"xor8", CRCAlgorithm::XOR8}, {"crc7", CRCAlgorithm::CRC7}};
+	{"crc7", CRCAlgorithm::CRC7},
+
+	{"crc8", CRCAlgorithm::CRC8},	{"crc10", CRCAlgorithm::CRC10}, {"crc11", CRCAlgorithm::CRC11},
+	{"crc15", CRCAlgorithm::CRC15}, {"crc24", CRCAlgorithm::CRC24}, {"crc30", CRCAlgorithm::CRC30},
+	{"crc32", CRCAlgorithm::CRC32}, {"crc64", CRCAlgorithm::CRC64}, {"xor8", CRCAlgorithm::XOR8},
+	{"xor8_masked", CRCAlgorithm::XOR8_MASK_MAJOR_BIT}};
 
 template <typename T> void generateRandomMessage(std::vector<T> &data, unsigned int size, RandGenerator &gen) {
 	for (unsigned int i = 0; i < size; i++) {
@@ -78,13 +90,13 @@ template <typename T> uint32_t compute32Xor(const std::vector<T> &data) {
 	return checksum;
 }
 
-template <typename T> uint32_t compute8Xor(const std::vector<T> &data) {
+template <typename T> uint32_t compute8Xor(const std::vector<T> &data, uint8_t mask = 0xFF) {
 	uint8_t *p = (uint8_t *)data.data();
 	uint8_t checksum = p[0];
 	for (int i = 1; i < data.size() * sizeof(T); i++) {
 		checksum ^= p[i];
 	}
-	return checksum & 0x7F;
+	return checksum & mask;
 }
 
 template <typename T> static bool isArrayEqual(const std::vector<T> &in, const std::vector<T> &out) {
@@ -151,24 +163,39 @@ int main(int argc, const char **argv) {
 
 		for (uint32_t i = 0; i < numTasks; i++) {
 			marl::schedule([&] { // All marl primitives are capture-by-value.
-				std::vector<unsigned int> data(dataSize);
-				std::vector<unsigned int> noise(dataSize);
+				std::vector<unsigned int> originalMsg(dataSize);
+				std::vector<unsigned int> MsgWithError(dataSize);
 				PGSRandom randGen;
 
 				/*	*/
 				for (uint64_t i = 0; i < localsamples; i++) {
-					generateRandomMessage(data, dataSize, randGen);
-					addBitError(data, noise, randGen, nrBitError);
+					generateRandomMessage(originalMsg, dataSize, randGen);
+					addBitError(originalMsg, MsgWithError, randGen, nrBitError);
 
-					std::uint32_t originalCRC =
-						CRC::Calculate(data.data(), data.size() * sizeof(unsigned int), CRC::CRC_7());
-					std::uint32_t noiseCRC =
-						CRC::Calculate(noise.data(), noise.size() * sizeof(unsigned int), CRC::CRC_7());
+					std::uint64_t originalCRC, noiseCRC;
+					switch (crcAlgorithm) {
+					case CRC7:
+						originalCRC = CRC::Calculate(originalMsg.data(), originalMsg.size() * sizeof(unsigned int), CRC::CRC_7());
+						noiseCRC = CRC::Calculate(MsgWithError.data(), MsgWithError.size() * sizeof(unsigned int), CRC::CRC_7());
+						break;
+					case CRC8:
+						originalCRC = CRC::Calculate(originalMsg.data(), originalMsg.size() * sizeof(unsigned int), CRC::CRC_8());
+						noiseCRC = CRC::Calculate(MsgWithError.data(), MsgWithError.size() * sizeof(unsigned int), CRC::CRC_8());
+						break;
+					case XOR8:
+						originalCRC = compute8Xor(originalMsg);
+						noiseCRC = compute8Xor(MsgWithError);
+						break;
+					case XOR8_MASK_MAJOR_BIT:
+						originalCRC = compute8Xor(originalMsg, 0x7F);
+						noiseCRC = compute8Xor(MsgWithError, 0x7F);
+						break;
+					}
 
-					// std::uint32_t originalCRC = compute8Xor(data);
-					// std::uint32_t noiseCRC = compute8Xor(noise);
 
-					if (!isArrayEqual(data, noise) && originalCRC == noiseCRC) {
+
+					/*	If message are not equal but the CRC are equal means that there was a incorrect CRC!	*/
+					if (!isArrayEqual(originalMsg, MsgWithError) && originalCRC == noiseCRC) {
 						nrCollision++;
 					}
 				}
@@ -180,9 +207,9 @@ int main(int argc, const char **argv) {
 				const uint32_t _current_number_completed_task = nrTaskCompleted.fetch_add(1);
 
 				const double _collisionPerc = (double)nrCollision.load() / (double)_current_nr_samples;
-				printf("\rCRC: %s, [%d/%d] NumberOfSamples %ld, collision: [%d,%lf]", crcStr.c_str(),
+				printf("\rCRC: %s, [%d/%d] NumberOfSamples %ld, collision: [%d,%lf] nr-error-bit %d", crcStr.c_str(),
 					   _current_number_completed_task, numTasks, _current_nr_samples, nrCollision.load(),
-					   _collisionPerc);
+					   _collisionPerc, nrBitError);
 				fflush(stdout);
 
 				/*	*/

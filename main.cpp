@@ -35,25 +35,26 @@ enum CRCAlgorithm {
 static std::unordered_map<std::string, CRCAlgorithm> const table = {
 	{"crc7", CRCAlgorithm::CRC7},
 
-	{"crc8", CRCAlgorithm::CRC8},	{"crc10", CRCAlgorithm::CRC10}, {"crc11", CRCAlgorithm::CRC11},
-	{"crc15", CRCAlgorithm::CRC15}, {"crc24", CRCAlgorithm::CRC24}, {"crc30", CRCAlgorithm::CRC30},
-	{"crc32", CRCAlgorithm::CRC32}, {"crc64", CRCAlgorithm::CRC64}, {"xor8", CRCAlgorithm::XOR8},
-	{"xor8_masked", CRCAlgorithm::XOR8_MASK_MAJOR_BIT}};
+	{"crc8", CRCAlgorithm::CRC8},	{"crc10", CRCAlgorithm::CRC10},
+	{"crc11", CRCAlgorithm::CRC11}, {"crc15", CRCAlgorithm::CRC15},
+	{"crc24", CRCAlgorithm::CRC24}, {"crc30", CRCAlgorithm::CRC30},
+	{"crc32", CRCAlgorithm::CRC32}, {"crc64", CRCAlgorithm::CRC64},
+	{"xor8", CRCAlgorithm::XOR8},	{"xor8_masked", CRCAlgorithm::XOR8_MASK_MAJOR_BIT}};
 
 template <typename T> void generateRandomMessage(std::vector<T> &data, unsigned int size, RandGenerator &gen) {
-	for (unsigned int i = 0; i < size; i++) {
+	for (size_t i = 0; i < size; i++) {
 		data[i] = gen.getRandom();
 	}
 }
 
 template <typename T> void addRandomNoise(const std::vector<T> &in, std::vector<T> &out, RandGenerator &gen) {
-	for (unsigned int i = 0; i < in.size(); i++) {
+	for (size_t i = 0; i < in.size(); i++) {
 		out[i] = in[i] ^ (T)gen.getRandom() + (T)(gen.getRandom() * 0.0001f);
 	}
 }
 
 template <typename T>
-void addBitError(const std::vector<T> &in, std::vector<T> &out, RandGenerator &gen, unsigned int nrBitError) {
+void setFlippedBitErrors(const std::vector<T> &in, std::vector<T> &out, RandGenerator &gen, unsigned int nrBitError) {
 	const uint32_t elementNrBits = sizeof(T) * 8;
 	const uint32_t dataBitSize = in.size() * elementNrBits;
 
@@ -65,24 +66,30 @@ void addBitError(const std::vector<T> &in, std::vector<T> &out, RandGenerator &g
 	for (unsigned int i = 0; i < nrBitError; i++) {
 
 		const uint32_t bitIndex = gen.getRandom() % dataBitSize;
+
+		/*	Convert a bit index to array index and bit offset.	*/
 		const uint32_t arrayIndex = bitIndex / elementNrBits;
 		const uint32_t bitFlipIndex = bitIndex % elementNrBits;
+
+		/*	*/
 		assert(bitFlipIndex < elementNrBits);
 		assert(arrayIndex < out.size());
+
+		/*	Flip a single bit.	*/
 		out[arrayIndex] ^= (1 << bitFlipIndex);
 	}
 }
 
 void computeDiff(const std::vector<unsigned int> &in, std::vector<unsigned int> &out) {
 	std::vector<unsigned int> p(in.size());
-	for (unsigned int i = 0; i < in.size(); i++) {
+	for (size_t i = 0; i < in.size(); i++) {
 		p[i] = out[i] ^ in[i];
 	}
 }
 
 void perform_error_correction(const std::vector<unsigned int> &in, std::vector<unsigned int> &out) {}
 
-template <typename T> uint32_t compute32Xor(const std::vector<T> &data) {
+template <typename T> static uint32_t compute32Xor(const std::vector<T> &data) {
 	uint32_t checksum = data[0];
 	for (int i = 1; i < data.size(); i++) {
 		checksum ^= data[i];
@@ -90,10 +97,10 @@ template <typename T> uint32_t compute32Xor(const std::vector<T> &data) {
 	return checksum;
 }
 
-template <typename T> uint32_t compute8Xor(const std::vector<T> &data, uint8_t mask = 0xFF) {
+template <typename T> static uint8_t compute8Xor(const std::vector<T> &data, uint8_t mask = 0xFF) {
 	uint8_t *p = (uint8_t *)data.data();
 	uint8_t checksum = p[0];
-	for (int i = 1; i < data.size() * sizeof(T); i++) {
+	for (size_t i = 1; i < data.size() * sizeof(T); i++) {
 		checksum ^= p[i];
 	}
 	return checksum & mask;
@@ -102,7 +109,7 @@ template <typename T> uint32_t compute8Xor(const std::vector<T> &data, uint8_t m
 template <typename T> static bool isArrayEqual(const std::vector<T> &in, const std::vector<T> &out) {
 	assert(in.size() == out.size());
 
-	for (int i = 0; i < in.size(); i++) {
+	for (size_t i = 0; i < in.size(); i++) {
 		if (in[i] != out[i])
 			return false;
 	}
@@ -127,7 +134,7 @@ int main(int argc, const char **argv) {
 			("i,integer", "Int param", cxxopts::value<int>())("v,verbose", "Verbose output",
 															  cxxopts::value<bool>()->default_value("false"))(
 				"c,crc", "CRC", cxxopts::value<std::string>()->default_value("crc8"))(
-				"p,data-chunk-size", "DataChunk", cxxopts::value<int>()->default_value("5"))(
+				"p,data-chunk-size", "DataChunk", cxxopts::value<uint32_t>()->default_value("5"))(
 				"e,error-correction", "Perform Error Correction", cxxopts::value<bool>()->default_value("false"))(
 				"s,samples", "Samples", cxxopts::value<uint64_t>()->default_value("1000000"))(
 				"t,task-size", "Task", cxxopts::value<int>()->default_value("2000"))(
@@ -135,7 +142,7 @@ int main(int argc, const char **argv) {
 
 		auto result = options.parse(argc, (char **&)argv);
 
-		dataSize = result["data-chunk-size"].as<int>();
+		dataSize = result["data-chunk-size"].as<uint32_t>();
 		samples = result["samples"].as<uint64_t>();
 		nrChunk = result["task-size"].as<int>();
 		nrBitError = result["number-of-bit-error"].as<int>();
@@ -161,7 +168,7 @@ int main(int argc, const char **argv) {
 		// Create a WaitGroup with an initial count of numTasks.
 		marl::WaitGroup saidHello(numTasks);
 
-		for (uint32_t i = 0; i < numTasks; i++) {
+		for (uint32_t nthTask = 0; nthTask < numTasks; nthTask++) {
 			marl::schedule([&] { // All marl primitives are capture-by-value.
 				std::vector<unsigned int> originalMsg(dataSize);
 				std::vector<unsigned int> MsgWithError(dataSize);
@@ -170,32 +177,45 @@ int main(int argc, const char **argv) {
 				/*	*/
 				for (uint64_t i = 0; i < localsamples; i++) {
 					generateRandomMessage(originalMsg, dataSize, randGen);
-					addBitError(originalMsg, MsgWithError, randGen, nrBitError);
+					setFlippedBitErrors(originalMsg, MsgWithError, randGen, nrBitError);
 
-					std::uint64_t originalCRC, noiseCRC;
+					std::uint64_t originalMsgCRC, errorMsgCRC;
 					switch (crcAlgorithm) {
 					case CRC7:
-						originalCRC = CRC::Calculate(originalMsg.data(), originalMsg.size() * sizeof(unsigned int), CRC::CRC_7());
-						noiseCRC = CRC::Calculate(MsgWithError.data(), MsgWithError.size() * sizeof(unsigned int), CRC::CRC_7());
+						originalMsgCRC =
+							CRC::Calculate(originalMsg.data(), originalMsg.size() * sizeof(unsigned int), CRC::CRC_7());
+						errorMsgCRC = CRC::Calculate(MsgWithError.data(), MsgWithError.size() * sizeof(unsigned int),
+													 CRC::CRC_7());
 						break;
 					case CRC8:
-						originalCRC = CRC::Calculate(originalMsg.data(), originalMsg.size() * sizeof(unsigned int), CRC::CRC_8());
-						noiseCRC = CRC::Calculate(MsgWithError.data(), MsgWithError.size() * sizeof(unsigned int), CRC::CRC_8());
+						originalMsgCRC =
+							CRC::Calculate(originalMsg.data(), originalMsg.size() * sizeof(unsigned int), CRC::CRC_8());
+						errorMsgCRC = CRC::Calculate(MsgWithError.data(), MsgWithError.size() * sizeof(unsigned int),
+													 CRC::CRC_8());
+						break;
+					case CRC10:
+					case CRC11:
+					case CRC15:
+					case CRC24:
+					case CRC30:
+					case CRC32:
+					case CRC64:
 						break;
 					case XOR8:
-						originalCRC = compute8Xor(originalMsg);
-						noiseCRC = compute8Xor(MsgWithError);
+						originalMsgCRC = compute8Xor(originalMsg);
+						errorMsgCRC = compute8Xor(MsgWithError);
 						break;
 					case XOR8_MASK_MAJOR_BIT:
-						originalCRC = compute8Xor(originalMsg, 0x7F);
-						noiseCRC = compute8Xor(MsgWithError, 0x7F);
+						originalMsgCRC = compute8Xor(originalMsg, 0x7F);
+						errorMsgCRC = compute8Xor(MsgWithError, 0x7F);
 						break;
+
+					default:
+						assert(0);
 					}
 
-
-
 					/*	If message are not equal but the CRC are equal means that there was a incorrect CRC!	*/
-					if (!isArrayEqual(originalMsg, MsgWithError) && originalCRC == noiseCRC) {
+					if (!isArrayEqual(originalMsg, MsgWithError) && originalMsgCRC == errorMsgCRC) {
 						nrCollision++;
 					}
 				}

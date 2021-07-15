@@ -6,6 +6,7 @@
 #include "marl/scheduler.h"
 #include "marl/thread.h"
 #include "marl/waitgroup.h"
+#include "revision.h"
 #include <CRC.h>
 #include <cassert>
 #include <cstdint> // Includes ::std::uint32_t
@@ -140,12 +141,12 @@ int main(int argc, const char **argv) {
 
 		cxxopts::Options options("CRCAnalysis", helperInfo);
 		options.add_options()("v,version", "Version information")("h,help", "helper information")(
-				"c,crc", "CRC", cxxopts::value<std::string>()->default_value("crc8"))(
-				"p,data-chunk-size", "DataChunk", cxxopts::value<uint32_t>()->default_value("5"))(
-				"e,error-correction", "Perform Error Correction", cxxopts::value<bool>()->default_value("false"))(
-				"s,samples", "Samples", cxxopts::value<uint64_t>()->default_value("1000000"))(
-				"t,task-size", "Task", cxxopts::value<int>()->default_value("2000"))(
-				"m,number-of-bit-error", "Number of bit error per message", cxxopts::value<int>()->default_value("1"));
+			"c,crc", "CRC", cxxopts::value<std::string>()->default_value("crc8"))(
+			"p,data-chunk-size", "DataChunk", cxxopts::value<uint32_t>()->default_value("5"))(
+			"e,error-correction", "Perform Error Correction", cxxopts::value<bool>()->default_value("false"))(
+			"s,samples", "Samples", cxxopts::value<uint64_t>()->default_value("1000000"))(
+			"t,task-size", "Task", cxxopts::value<int>()->default_value("2000"))(
+			"m,number-of-bit-error", "Number of bit error per message", cxxopts::value<int>()->default_value("1"));
 
 		auto result = options.parse(argc, (char **&)argv);
 
@@ -155,7 +156,9 @@ int main(int argc, const char **argv) {
 			return EXIT_SUCCESS;
 		}
 		if (result.count("version") > 0) {
-			std::cout << "version";
+			std::cout << "Version: git-hash: " << CRC_ANALYSIS_GITCOMMIT_STR
+					  << " - git-branch: " << CRC_ANALYSIS_GITBRANCH_TR << std::endl;
+			return EXIT_SUCCESS;
 		}
 
 		dataSize = result["data-chunk-size"].as<uint32_t>();

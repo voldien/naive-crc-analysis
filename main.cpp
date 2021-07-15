@@ -42,12 +42,15 @@ static std::unordered_map<std::string, CRCAlgorithm> const table = {
 	{"xor8", CRCAlgorithm::XOR8},	{"xor8_masked", CRCAlgorithm::XOR8_MASK_MAJOR_BIT}};
 
 template <typename T> void generateRandomMessage(std::vector<T> &data, unsigned int size, RandGenerator &gen) {
+	assert(data.size() <= size);
 	for (size_t i = 0; i < size; i++) {
 		data[i] = gen.getRandom();
 	}
 }
 
 template <typename T> void addRandomNoise(const std::vector<T> &in, std::vector<T> &out, RandGenerator &gen) {
+
+	assert(in.size() == out.size());
 	for (size_t i = 0; i < in.size(); i++) {
 		out[i] = in[i] ^ (T)gen.getRandom() + (T)(gen.getRandom() * 0.0001f);
 	}
@@ -82,6 +85,7 @@ void setFlippedBitErrors(const std::vector<T> &in, std::vector<T> &out, RandGene
 
 void computeDiff(const std::vector<unsigned int> &in, std::vector<unsigned int> &out) {
 	std::vector<unsigned int> p(in.size());
+	assert(in.size() == out.size());
 	for (size_t i = 0; i < in.size(); i++) {
 		p[i] = out[i] ^ in[i];
 	}
@@ -100,7 +104,9 @@ template <typename T> static uint32_t compute32Xor(const std::vector<T> &data) {
 template <typename T> static uint8_t compute8Xor(const std::vector<T> &data, uint8_t mask = 0xFF) {
 	uint8_t *p = (uint8_t *)data.data();
 	uint8_t checksum = p[0];
-	for (size_t i = 1; i < data.size() * sizeof(T); i++) {
+	const uint32_t nrBytes = data.size() * sizeof(T);
+
+	for (size_t i = 1; i < nrBytes; i++) {
 		checksum ^= p[i];
 	}
 	return checksum & mask;
@@ -116,6 +122,7 @@ template <typename T> static bool isArrayEqual(const std::vector<T> &in, const s
 	return true;
 }
 
+
 int main(int argc, const char **argv) {
 
 	/*	*/
@@ -124,15 +131,18 @@ int main(int argc, const char **argv) {
 		uint32_t dataSize;
 		uint32_t nrChunk;
 		uint32_t nrBitError;
-		std::atomic_uint32_t nrCollision = 0;
+		std::atomic_uint64_t nrCollision = 0;
 		std::atomic_uint64_t nrOfSamples = 0;
 		std::atomic_uint32_t nrTaskCompleted = 0;
 		CRCAlgorithm crcAlgorithm;
 
-		cxxopts::Options options("Naive CRC Analysis", "");
-		options.add_options()("d,debug", "Enable debugging") // a bool parameter
-			("i,integer", "Int param", cxxopts::value<int>())("v,verbose", "Verbose output",
-															  cxxopts::value<bool>()->default_value("false"))(
+		const std::string helperInfo = "Naive CRC Analysis\n"
+									   "A simple program for checking error detection"
+									   "";
+
+		cxxopts::Options options("CRCAnalysis", helperInfo);
+		options.add_options()
+			("v,version", "Version information")("h,help", "helper information")(
 				"c,crc", "CRC", cxxopts::value<std::string>()->default_value("crc8"))(
 				"p,data-chunk-size", "DataChunk", cxxopts::value<uint32_t>()->default_value("5"))(
 				"e,error-correction", "Perform Error Correction", cxxopts::value<bool>()->default_value("false"))(
@@ -142,21 +152,28 @@ int main(int argc, const char **argv) {
 
 		auto result = options.parse(argc, (char **&)argv);
 
+		/*	If mention help, Display help and exit!	*/
+		if (result.count("help") > 0) {
+			std::cout << options.help();
+			return EXIT_SUCCESS;
+		}
+
 		dataSize = result["data-chunk-size"].as<uint32_t>();
 		samples = result["samples"].as<uint64_t>();
 		nrChunk = result["task-size"].as<int>();
 		nrBitError = result["number-of-bit-error"].as<int>();
 
-		auto it = table.find(result["crc"].as<std::string>());
-		if (it != table.end()) {
-			// Invalid
+		const std::string& crcStr = result["crc"].as<std::string>();
+		auto foundItem = table.find(crcStr);
+		if (foundItem == table.end()) {
+			std::cerr << "Invalid CRC Options " << crcStr << std::endl;
+			return EXIT_FAILURE;
 		}
-		crcAlgorithm = (*it).second;
-		const std::string &crcStr = (*it).first;
+		crcAlgorithm = (*foundItem).second;
 
 		/*	*/
 		uint32_t numTasks = marl::Thread::numLogicalCPUs() * nrChunk;
-		uint64_t localsamples = samples / numTasks;
+		uint64_t numLocalSamplesPTask = samples / numTasks;
 
 		/*	*/
 		marl::Scheduler scheduler(marl::Scheduler::Config::allCores());
@@ -175,7 +192,7 @@ int main(int argc, const char **argv) {
 				PGSRandom randGen;
 
 				/*	*/
-				for (uint64_t i = 0; i < localsamples; i++) {
+				for (uint64_t i = 0; i < numLocalSamplesPTask; i++) {
 					generateRandomMessage(originalMsg, dataSize, randGen);
 					setFlippedBitErrors(originalMsg, MsgWithError, randGen, nrBitError);
 
@@ -194,6 +211,10 @@ int main(int argc, const char **argv) {
 													 CRC::CRC_8());
 						break;
 					case CRC10:
+											originalMsgCRC =
+							CRC::Calculate(originalMsg.data(), originalMsg.size() * sizeof(unsigned int), CRC::CRC_10());
+						errorMsgCRC = CRC::Calculate(MsgWithError.data(), MsgWithError.size() * sizeof(unsigned int),
+													 CRC::CRC_10());
 					case CRC11:
 					case CRC15:
 					case CRC24:
@@ -223,12 +244,13 @@ int main(int argc, const char **argv) {
 
 				// Blocking in a task?
 				// The scheduler will find something else for this thread to do.
-				const uint64_t _current_nr_samples = nrOfSamples.fetch_add(localsamples);
+				const uint64_t _current_nr_samples = nrOfSamples.fetch_add(numLocalSamplesPTask);
 				const uint32_t _current_number_completed_task = nrTaskCompleted.fetch_add(1);
+				const uint64_t _current_nr_collision = nrCollision.load();
 
-				const double _collisionPerc = (double)nrCollision.load() / (double)_current_nr_samples;
-				printf("\rCRC: %s, [%d/%d] NumberOfSamples %ld, collision: [%d,%lf] nr-error-bit %d", crcStr.c_str(),
-					   _current_number_completed_task, numTasks, _current_nr_samples, nrCollision.load(),
+				const double _collisionPerc = (double)_current_nr_collision / (double)_current_nr_samples;
+				printf("\rCRC: %s, [%d/%d] NumberOfSamples %ld, collision: [%ld,%lf] nr-error-bit %d", crcStr.c_str(),
+					   _current_number_completed_task, numTasks, _current_nr_samples, _current_nr_collision,
 					   _collisionPerc, nrBitError);
 				fflush(stdout);
 
@@ -245,7 +267,8 @@ int main(int argc, const char **argv) {
 
 		saidHello.wait(); // Wait for all tasks to complete.
 
-		printf("\rCRC8 collision %d, %f!\n", nrCollision.load(), collisionPerc * 100);
+		std::cout << std::endl;
+		//printf("\rCRC8 collision %d, %f!\n", nrCollision.load(), collisionPerc * 100);
 	} catch (const std::exception &ex) {
 		std::cerr << ex.what();
 		return EXIT_FAILURE;

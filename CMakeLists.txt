@@ -9,27 +9,46 @@ SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_CXX_EXTENSIONS OFF)
 
+#  Extract git hash and branch information.
+IF(NOT CRC_IGNORE_GIT_HASH)
+  # Get the current working branch
+  EXECUTE_PROCESS(
+	COMMAND git rev-parse --abbrev-ref HEAD
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	OUTPUT_VARIABLE GIT_BRANCH
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	ERROR_QUIET
+  )
+
+  # Get the latest abbreviated commit hash of the working branch
+  EXECUTE_PROCESS(
+	COMMAND git rev-parse --short=8 HEAD
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	OUTPUT_VARIABLE GIT_COMMIT_HASH
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	ERROR_QUIET
+  )
+ENDIF()
+
 FILE(GLOB SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/extern/pcg-c-basic/*.c
 )
 FILE(GLOB HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
-IF(PKG_CONFIG_FOUND)
-	MESSAGE(STATUS "Found pkg-config: ${PKG_CONFIG_EXECUTABLE} -- version ${PKG_CONFIG_VERSION_STRING}.")
-ELSE()
-	MESSAGE(ERROR "")
-	# TODO add logic for handling if pkg-config not available.
-ENDIF()
 
 ADD_EXECUTABLE(CRCAnalysis ${SOURCE_FILES} ${HEADER_FILES} )
 TARGET_LINK_LIBRARIES(CRCAnalysis cxxopts marl)
 
+# Added external cmake sub-projects
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/extern/cxxopts EXCLUDE_FROM_ALL)
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/extern/marl EXCLUDE_FROM_ALL)
 
-# Vulkan dependies headers.
 TARGET_INCLUDE_DIRECTORIES(CRCAnalysis PRIVATE 
 ${CMAKE_CURRENT_SOURCE_DIR}/extern/marl/include
 ${CMAKE_CURRENT_SOURCE_DIR}/extern/pcg-c-basic
 ${CMAKE_CURRENT_SOURCE_DIR}/extern/cxxopts/include
 ${CMAKE_CURRENT_SOURCE_DIR}/extern/CRCpp/inc)
 # 
+
+
+# Genrate the revision header.
+CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/revision.h.in" "${CMAKE_CURRENT_SOURCE_DIR}/revision.h" @ONLY)

@@ -1,13 +1,12 @@
 #define CRCPP_USE_CPP11
 #define CRCPP_INCLUDE_ESOTERIC_CRC_DEFINITIONS
 #include "RandGenerator.h"
-#include <CRC.h>
-
 #include "marl/defer.h"
 #include "marl/event.h"
 #include "marl/scheduler.h"
 #include "marl/thread.h"
 #include "marl/waitgroup.h"
+#include <CRC.h>
 #include <cassert>
 #include <cstdint> // Includes ::std::uint32_t
 #include <cstring>
@@ -122,7 +121,6 @@ template <typename T> static bool isArrayEqual(const std::vector<T> &in, const s
 	return true;
 }
 
-
 int main(int argc, const char **argv) {
 
 	/*	*/
@@ -141,8 +139,7 @@ int main(int argc, const char **argv) {
 									   "";
 
 		cxxopts::Options options("CRCAnalysis", helperInfo);
-		options.add_options()
-			("v,version", "Version information")("h,help", "helper information")(
+		options.add_options()("v,version", "Version information")("h,help", "helper information")(
 				"c,crc", "CRC", cxxopts::value<std::string>()->default_value("crc8"))(
 				"p,data-chunk-size", "DataChunk", cxxopts::value<uint32_t>()->default_value("5"))(
 				"e,error-correction", "Perform Error Correction", cxxopts::value<bool>()->default_value("false"))(
@@ -157,13 +154,16 @@ int main(int argc, const char **argv) {
 			std::cout << options.help();
 			return EXIT_SUCCESS;
 		}
+		if (result.count("version") > 0) {
+			std::cout << "version";
+		}
 
 		dataSize = result["data-chunk-size"].as<uint32_t>();
 		samples = result["samples"].as<uint64_t>();
 		nrChunk = result["task-size"].as<int>();
 		nrBitError = result["number-of-bit-error"].as<int>();
 
-		const std::string& crcStr = result["crc"].as<std::string>();
+		const std::string &crcStr = result["crc"].as<std::string>();
 		auto foundItem = table.find(crcStr);
 		if (foundItem == table.end()) {
 			std::cerr << "Invalid CRC Options " << crcStr << std::endl;
@@ -211,8 +211,8 @@ int main(int argc, const char **argv) {
 													 CRC::CRC_8());
 						break;
 					case CRC10:
-											originalMsgCRC =
-							CRC::Calculate(originalMsg.data(), originalMsg.size() * sizeof(unsigned int), CRC::CRC_10());
+						originalMsgCRC = CRC::Calculate(originalMsg.data(), originalMsg.size() * sizeof(unsigned int),
+														CRC::CRC_10());
 						errorMsgCRC = CRC::Calculate(MsgWithError.data(), MsgWithError.size() * sizeof(unsigned int),
 													 CRC::CRC_10());
 					case CRC11:
@@ -268,7 +268,6 @@ int main(int argc, const char **argv) {
 		saidHello.wait(); // Wait for all tasks to complete.
 
 		std::cout << std::endl;
-		//printf("\rCRC8 collision %d, %f!\n", nrCollision.load(), collisionPerc * 100);
 	} catch (const std::exception &ex) {
 		std::cerr << ex.what();
 		return EXIT_FAILURE;

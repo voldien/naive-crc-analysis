@@ -1,4 +1,4 @@
-name: crc-analysis
+name: crc-collision-anlysis
 
 on: [push]
 

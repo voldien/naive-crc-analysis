@@ -96,14 +96,6 @@ template <typename T> void generateRandomMessage(std::vector<T> &data, unsigned 
 	}
 }
 
-template <typename T> void addRandomNoise(const std::vector<T> &in, std::vector<T> &out, RandGenerator &gen) {
-
-	assert(in.size() == out.size());
-	for (size_t i = 0; i < in.size(); i++) {
-		out[i] = in[i] ^ (T)gen.getRandom() + (T)(gen.getRandom() * 0.0001f);
-	}
-}
-
 template <typename T>
 void setFlippedBitErrors(const std::vector<T> &in, std::vector<T> &out, RandGenerator &gen, unsigned int nrBitError) {
 	const uint32_t elementNrBits = sizeof(T) * 8;
@@ -134,12 +126,14 @@ void setFlippedBitErrors(const std::vector<T> &in, std::vector<T> &out, RandGene
 void computeDiff(const std::vector<unsigned int> &in, std::vector<unsigned int> &out) {
 	std::vector<unsigned int> p(in.size());
 	assert(in.size() == out.size());
+
 	for (size_t i = 0; i < in.size(); i++) {
+		/*	Compute the difference.	*/
 		p[i] = out[i] ^ in[i];
 	}
 }
 
-void perform_error_correction(const std::vector<unsigned int> &in, std::vector<unsigned int> &out) {}
+void attemptErrorCorrectMsg(const std::vector<unsigned int> &in, std::vector<unsigned int> &out) {}
 
 template <typename T> static uint32_t compute32Xor(const std::vector<T> &data) {
 	uint32_t checksum = data[0];
@@ -209,11 +203,13 @@ int main(int argc, const char **argv) {
 			return EXIT_SUCCESS;
 		}
 
+		/*	*/
 		dataSize = result["data-chunk-size"].as<uint32_t>();
 		samples = result["samples"].as<uint64_t>();
 		nrChunk = result["task-size"].as<int>();
 		nrBitError = result["number-of-bit-error"].as<int>();
 
+		/*	*/
 		const std::string &crcStr = result["crc"].as<std::string>();
 		auto foundItem = table.find(crcStr);
 		if (foundItem == table.end()) {
@@ -235,6 +231,9 @@ int main(int argc, const char **argv) {
 		marl::Event sayHello(marl::Event::Mode::Manual);
 		// Create a WaitGroup with an initial count of numTasks.
 		marl::WaitGroup saidHello(numTasks);
+
+		/*	Create lookup table.	*/
+		// TODO
 
 		for (uint32_t nthTask = 0; nthTask < numTasks; nthTask++) {
 			marl::schedule([&] { // All marl primitives are capture-by-value.
@@ -291,14 +290,13 @@ int main(int argc, const char **argv) {
 						nrCollision++;
 					}
 				}
-				// Decrement the WaitGroup counter when the task has finished.
 
-				// Blocking in a task?
-				// The scheduler will find something else for this thread to do.
+				/*	*/
 				const uint64_t _current_nr_samples = nrOfSamples.fetch_add(numLocalSamplesPTask);
 				const uint32_t _current_number_completed_task = nrTaskCompleted.fetch_add(1);
 				const uint64_t _current_nr_collision = nrCollision.load();
 
+				/*	*/
 				const double _collisionPerc = (double)_current_nr_collision / (double)_current_nr_samples;
 				printf("\rCRC: %s, [%d/%d] NumberOfSamples %ld, collision: [%ld,%lf] nr-error-bit %d", crcStr.c_str(),
 					   _current_number_completed_task, numTasks, _current_nr_samples, _current_nr_collision,
@@ -311,8 +309,6 @@ int main(int argc, const char **argv) {
 
 			});
 		}
-
-		const double collisionPerc = (double)nrCollision.load() / (double)samples;
 
 		sayHello.signal(); // Unblock all the tasks.
 

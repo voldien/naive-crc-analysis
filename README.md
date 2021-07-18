@@ -1,6 +1,6 @@
 # Naive CRC Analysis Tool
-[![Actions Build Status](https://github.com/voldien/crc-collision-anlysis/workflows/crc-collision-anlysis/badge.svg?branch=master)](https://github.com/voldien/crc-collision-anlysis/actions)
-[![GitHub release](https://img.shields.io/github/release/voldien/crc-collision-anlysis.svg)](https://github.com/voldien/vecfield/releases)
+[![Actions Build Status](https://github.com/voldien/naive-crc-analysis/workflows/crc-collision-anlysis/badge.svg?branch=master)](https://github.com/voldien/naive-crc-analysis/actions)
+[![GitHub release](https://img.shields.io/github/release/voldien/naive-crc-analysis.svg)](https://github.com/voldien/naive-crc-analysis/releases)
 
 A simple program to test how various CRC error detection capabilities depending on how much error is introduced. The program will create an n-number of
 messages and an its respective error message with n number of bit errors. Afterward, compute the CRC for both the untouched message and the error message and check if they are not equal.

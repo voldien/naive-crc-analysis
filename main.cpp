@@ -187,8 +187,9 @@ int main(int argc, const char **argv) {
 			"p,data-chunk-size", "DataChunk", cxxopts::value<uint32_t>()->default_value("5"))(
 			"e,error-correction", "Perform Error Correction", cxxopts::value<bool>()->default_value("false"))(
 			"s,samples", "Samples", cxxopts::value<uint64_t>()->default_value("1000000"))(
-			"t,task-size", "Task", cxxopts::value<int>()->default_value("2000"))(
-			"m,number-of-bit-error", "Number of bit error per message", cxxopts::value<int>()->default_value("1"));
+			"t,tasks", "Task", cxxopts::value<int>()->default_value("2000"))(
+			"m,number-of-bit-error", "Number of bit error per message", cxxopts::value<int>()->default_value("1"))(
+			"f,forever", "Run it forever", cxxopts::value<bool>()->default_value("false"));
 
 		auto result = options.parse(argc, (char **&)argv);
 
@@ -206,8 +207,9 @@ int main(int argc, const char **argv) {
 		/*	*/
 		dataSize = result["data-chunk-size"].as<uint32_t>();
 		samples = result["samples"].as<uint64_t>();
-		nrChunk = result["task-size"].as<int>();
+		nrChunk = result["tasks"].as<int>();
 		nrBitError = result["number-of-bit-error"].as<int>();
+		bool runForever = result["forever"].as<bool>();
 
 		/*	*/
 		const std::string &crcStr = result["crc"].as<std::string>();
@@ -219,100 +221,104 @@ int main(int argc, const char **argv) {
 		crcAlgorithm = (*foundItem).second;
 
 		/*	*/
-		uint32_t numTasks = marl::Thread::numLogicalCPUs() * nrChunk;
+		uint32_t numTasks = nrChunk; /// marl::Thread::numLogicalCPUs();
 		uint64_t numLocalSamplesPTask = samples / numTasks;
+		assert(numLocalSamplesPTask > 0);
 
 		/*	*/
 		marl::Scheduler scheduler(marl::Scheduler::Config::allCores());
 		scheduler.bind();
 		defer(scheduler.unbind()); // Automatically unbind before returning.
 
-		// Create an event that is manually reset.
-		marl::Event sayHello(marl::Event::Mode::Manual);
-		// Create a WaitGroup with an initial count of numTasks.
-		marl::WaitGroup saidHello(numTasks);
-
 		/*	Create lookup table.	*/
 		// TODO
+		do {
 
-		for (uint32_t nthTask = 0; nthTask < numTasks; nthTask++) {
-			marl::schedule([&] { // All marl primitives are capture-by-value.
-				std::vector<unsigned int> originalMsg(dataSize);
-				std::vector<unsigned int> MsgWithError(dataSize);
-				PGSRandom randGen;
+			// Create an event that is manually reset.
+			marl::Event sayHello(marl::Event::Mode::Manual);
+			// Create a WaitGroup with an initial count of numTasks.
+			marl::WaitGroup saidHello(numTasks);
 
-				/*	*/
-				for (uint64_t i = 0; i < numLocalSamplesPTask; i++) {
-					generateRandomMessage(originalMsg, dataSize, randGen);
-					setFlippedBitErrors(originalMsg, MsgWithError, randGen, nrBitError);
+			for (uint32_t nthTask = 0; nthTask < numTasks; nthTask++) {
+				marl::schedule([&] { // All marl primitives are capture-by-value.
+					std::vector<unsigned int> originalMsg(dataSize);
+					std::vector<unsigned int> MsgWithError(dataSize);
+					PGSRandom randGen;
 
-					std::uint64_t originalMsgCRC, errorMsgCRC;
-					switch (crcAlgorithm) {
-					case CRC7:
-						originalMsgCRC =
-							CRC::Calculate(originalMsg.data(), originalMsg.size() * sizeof(unsigned int), CRC::CRC_7());
-						errorMsgCRC = CRC::Calculate(MsgWithError.data(), MsgWithError.size() * sizeof(unsigned int),
-													 CRC::CRC_7());
-						break;
-					case CRC8:
-						originalMsgCRC =
-							CRC::Calculate(originalMsg.data(), originalMsg.size() * sizeof(unsigned int), CRC::CRC_8());
-						errorMsgCRC = CRC::Calculate(MsgWithError.data(), MsgWithError.size() * sizeof(unsigned int),
-													 CRC::CRC_8());
-						break;
-					case CRC10:
-						originalMsgCRC = CRC::Calculate(originalMsg.data(), originalMsg.size() * sizeof(unsigned int),
-														CRC::CRC_10());
-						errorMsgCRC = CRC::Calculate(MsgWithError.data(), MsgWithError.size() * sizeof(unsigned int),
-													 CRC::CRC_10());
-					case CRC11:
-					case CRC15:
-					case CRC24:
-					case CRC30:
-					case CRC32:
-					case CRC64:
-						break;
-					case XOR8:
-						originalMsgCRC = compute8Xor(originalMsg);
-						errorMsgCRC = compute8Xor(MsgWithError);
-						break;
-					case XOR8_MASK_MAJOR_BIT:
-						originalMsgCRC = compute8Xor(originalMsg, 0x7F);
-						errorMsgCRC = compute8Xor(MsgWithError, 0x7F);
-						break;
+					/*	*/
+					for (uint64_t i = 0; i < numLocalSamplesPTask; i++) {
+						generateRandomMessage(originalMsg, dataSize, randGen);
+						setFlippedBitErrors(originalMsg, MsgWithError, randGen, nrBitError);
 
-					default:
-						assert(0);
+						std::uint64_t originalMsgCRC, errorMsgCRC;
+						switch (crcAlgorithm) {
+						case CRC7:
+							originalMsgCRC = CRC::Calculate(originalMsg.data(),
+															originalMsg.size() * sizeof(unsigned int), CRC::CRC_7());
+							errorMsgCRC = CRC::Calculate(MsgWithError.data(),
+														 MsgWithError.size() * sizeof(unsigned int), CRC::CRC_7());
+							break;
+						case CRC8:
+							originalMsgCRC = CRC::Calculate(originalMsg.data(),
+															originalMsg.size() * sizeof(unsigned int), CRC::CRC_8());
+							errorMsgCRC = CRC::Calculate(MsgWithError.data(),
+														 MsgWithError.size() * sizeof(unsigned int), CRC::CRC_8());
+							break;
+						case CRC10:
+							originalMsgCRC = CRC::Calculate(originalMsg.data(),
+															originalMsg.size() * sizeof(unsigned int), CRC::CRC_10());
+							errorMsgCRC = CRC::Calculate(MsgWithError.data(),
+														 MsgWithError.size() * sizeof(unsigned int), CRC::CRC_10());
+						case CRC11:
+						case CRC15:
+						case CRC24:
+						case CRC30:
+						case CRC32:
+						case CRC64:
+							break;
+						case XOR8:
+							originalMsgCRC = compute8Xor(originalMsg);
+							errorMsgCRC = compute8Xor(MsgWithError);
+							break;
+						case XOR8_MASK_MAJOR_BIT:
+							originalMsgCRC = compute8Xor(originalMsg, 0x7F);
+							errorMsgCRC = compute8Xor(MsgWithError, 0x7F);
+							break;
+
+						default:
+							assert(0);
+						}
+
+						/*	If message are not equal but the CRC are equal means that there was a incorrect CRC!	*/
+						if (!isArrayEqual(originalMsg, MsgWithError) && originalMsgCRC == errorMsgCRC) {
+							nrCollision++;
+						}
 					}
 
-					/*	If message are not equal but the CRC are equal means that there was a incorrect CRC!	*/
-					if (!isArrayEqual(originalMsg, MsgWithError) && originalMsgCRC == errorMsgCRC) {
-						nrCollision++;
-					}
-				}
+					/*	*/
+					volatile const uint64_t _current_nr_samples = nrOfSamples.fetch_add(numLocalSamplesPTask);
+					volatile const uint32_t _current_number_completed_task = nrTaskCompleted.fetch_add(1);
+					volatile const uint64_t _current_nr_collision = nrCollision.load();
 
-				/*	*/
-				const uint64_t _current_nr_samples = nrOfSamples.fetch_add(numLocalSamplesPTask);
-				const uint32_t _current_number_completed_task = nrTaskCompleted.fetch_add(1);
-				const uint64_t _current_nr_collision = nrCollision.load();
+					/*	*/
+					// assert(_current_nr_samples > 0);
+					const double _collisionPerc = (double)_current_nr_collision / (double)_current_nr_samples;
+					printf("\rCRC: %s, [%d/%d] NumberOfSamples %ld, collision: [%ld,%lf] nr-error-bit %d",
+						   crcStr.c_str(), _current_number_completed_task, numTasks, _current_nr_samples,
+						   _current_nr_collision, _collisionPerc, nrBitError);
+					fflush(stdout);
 
-				/*	*/
-				const double _collisionPerc = (double)_current_nr_collision / (double)_current_nr_samples;
-				printf("\rCRC: %s, [%d/%d] NumberOfSamples %ld, collision: [%ld,%lf] nr-error-bit %d", crcStr.c_str(),
-					   _current_number_completed_task, numTasks, _current_nr_samples, _current_nr_collision,
-					   _collisionPerc, nrBitError);
-				fflush(stdout);
+					/*	*/
+					defer(saidHello.done());
+					sayHello.wait();
 
-				/*	*/
-				defer(saidHello.done());
-				sayHello.wait();
+				});
+			}
 
-			});
-		}
+			sayHello.signal(); // Unblock all the tasks.
 
-		sayHello.signal(); // Unblock all the tasks.
-
-		saidHello.wait(); // Wait for all tasks to complete.
+			saidHello.wait(); // Wait for all tasks to complete.
+		} while (runForever);
 
 		std::cout << std::endl;
 	} catch (const std::exception &ex) {

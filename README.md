@@ -23,6 +23,7 @@ cmake ..
 make
 ```
 
+The executable can be located in the bin directory as *Analysis*.
 
 
 # Examples
@@ -48,7 +49,7 @@ Usage:
   -p, --data-chunk-size arg     DataChunk (default: 5)
   -e, --error-correction        Perform Error Correction
   -s, --samples arg             Samples (default: 1000000)
-  -t, --task-size arg           Task (default: 2000)
+  -t, --tasks arg               Task (default: 2000)
   -m, --number-of-bit-error arg
                                 Number of bit error per message (default: 1)
 ```

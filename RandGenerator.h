@@ -4,7 +4,7 @@
 #include <time.h>
 class RandGenerator {
   public:
-	virtual uint32_t getRandom(void) = 0;
+	virtual uint32_t getRandom(void) noexcept = 0;
 };
 
 class PGSRandom : public RandGenerator {
@@ -13,7 +13,7 @@ class PGSRandom : public RandGenerator {
 		srand(time(nullptr));
 		pcg32_srandom_r(&rng, rand(), rand());
 	}
-	virtual uint32_t getRandom(void) { return pcg32_random_r(&rng); }
+	virtual uint32_t getRandom(void) noexcept { return pcg32_random_r(&rng); }
 
   private:
 	pcg32_random_t rng;

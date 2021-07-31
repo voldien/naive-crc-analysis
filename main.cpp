@@ -199,8 +199,9 @@ int main(int argc, const char **argv) {
 			return EXIT_SUCCESS;
 		}
 		if (result.count("version") > 0) {
-			std::cout << "Version: git-hash: " << CRC_ANALYSIS_GITCOMMIT_STR
-					  << " - git-branch: " << CRC_ANALYSIS_GITBRANCH_TR << std::endl;
+			std::cout << "Version: " << CRC_ANALYSIS_STR <<
+			" hash: " << CRC_ANALYSIS_GITCOMMIT_STR
+				<< " branch: " << CRC_ANALYSIS_GITBRANCH_TR << std::endl;
 			return EXIT_SUCCESS;
 		}
 
@@ -230,8 +231,8 @@ int main(int argc, const char **argv) {
 		scheduler.bind();
 		defer(scheduler.unbind()); // Automatically unbind before returning.
 
-		/*	Create lookup table.	*/
 		// TODO
+		/*	Create lookup table.	*/
 		do {
 
 			// Create an event that is manually reset.

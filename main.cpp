@@ -24,7 +24,7 @@ enum CRCAlgorithm {
 	CRC5_ITU,
 	CRC5_USB,
 	CRC6_CDMA2000A,
-	CRC5_CDMA2000B,
+	CRC6_CDMA2000B,
 	CRC6_ITU,
 	CRC6_NR,
 	CRC7,
@@ -81,9 +81,27 @@ enum CRCAlgorithm {
 };
 
 static std::unordered_map<std::string, CRCAlgorithm> const table = {
-	{"crc7", CRCAlgorithm::CRC7},
+	{"crc4_itu", CRCAlgorithm::CRC4_ITU},
+	{"crc5_epc", CRCAlgorithm::CRC5_EPC},
+	{"crc5_itu", CRCAlgorithm::CRC5_ITU},
+	{"crc5_usb", CRCAlgorithm::CRC5_USB},
+	{"crc6_cmda2000a", CRCAlgorithm::CRC6_CDMA2000A},
+	{"crc6_cmda2000b", CRCAlgorithm::CRC6_CDMA2000B},
+	{"crc6_itu", CRCAlgorithm::CRC6_ITU},
+	{"crc6_nr", CRCAlgorithm::CRC6_NR},
 
-	{"crc8", CRCAlgorithm::CRC8},	{"crc10", CRCAlgorithm::CRC10},
+
+	{"crc7", CRCAlgorithm::CRC7},
+	{"crc8", CRCAlgorithm::CRC8},
+
+	{"crc8_ebu", CRCAlgorithm::CRC8_EBU},
+	{"crc8_maxim", CRCAlgorithm::CRC8_MAXIM},
+	{"crc8_wcdma", CRCAlgorithm::CRC8_WCDMA},
+	{"crc8_lte", CRCAlgorithm::CRC8_LTE},
+	
+	
+	
+	{"crc10", CRCAlgorithm::CRC10},
 	{"crc11", CRCAlgorithm::CRC11}, {"crc15", CRCAlgorithm::CRC15},
 	{"crc24", CRCAlgorithm::CRC24}, {"crc30", CRCAlgorithm::CRC30},
 	{"crc32", CRCAlgorithm::CRC32}, {"crc64", CRCAlgorithm::CRC64},
@@ -164,6 +182,105 @@ template <typename T> static bool isArrayEqual(const std::vector<T> &in, const s
 	return true;
 }
 
+template <typename T> static uint64_t computeCRC(CRCAlgorithm algorithm, const std::vector<T> &in) {
+	const std::size_t nrBytes = in.size() * sizeof(T);
+	const void *pData = in.data();
+
+	switch (algorithm) {
+	case CRC4_ITU:
+	case CRC5_EPC:
+	case CRC5_ITU:
+	case CRC5_USB:
+	case CRC6_CDMA2000A:
+	case CRC6_CDMA2000B:
+	case CRC6_ITU:
+	case CRC6_NR:
+	case CRC7: {
+		static CRC::Table table(CRC::CRC_7());
+		return CRC::Calculate(pData, nrBytes, table);
+	}
+	case CRC8: {
+		static CRC::Table table(CRC::CRC_8());
+		return CRC::Calculate(pData, nrBytes, table);
+	}
+	case CRC8_EBU:
+	case CRC8_MAXIM:
+	case CRC8_WCDMA:
+	case CRC8_LTE:
+	case CRC10: {
+		static CRC::Table table(CRC::CRC_10());
+		return CRC::Calculate(pData, nrBytes, table);
+	}
+	case CRC10_CDMA2000:
+	case CRC11: {
+		static CRC::Table table(CRC::CRC_11());
+		return CRC::Calculate(pData, nrBytes, table);
+	}
+	case CRC11_NR:
+	case CRC12_CDMA2000:
+	case CRC12_DECT:
+	case CRC12_UMTS:
+	case CRC13_BCC:
+	case CRC15: {
+		static CRC::Table table(CRC::CRC_15());
+		return CRC::Calculate(pData, nrBytes, table);
+	}
+	case CRC15_MPT1327:
+	case CRC16_ARC:
+	case CRC16_BUYPASS:
+	case CRC16_CCITTFALSE:
+	case CRC16_CDMA2000:
+	case CRC16_CMS:
+	case CRC16_DECTR:
+	case CRC16_DECTX:
+	case CRC16_DNP:
+	case CRC16_GENIBUS:
+	case CRC16_KERMIT:
+	case CRC16_MAXIM:
+	case CRC16_MODBUS:
+	case CRC16_T10DIF:
+	case CRC16_USB:
+	case CRC16_X25:
+	case CRC16_XMODEM:
+	case CRC17_CAN:
+	case CRC21_CAN:
+	case CRC24: {
+		static CRC::Table table(CRC::CRC_24());
+		return CRC::Calculate(pData, nrBytes, table);
+	}
+	case CRC24_FLEXRAYA:
+	case CRC24_FLEXRAYB:
+	case CRC24_LTEA:
+	case CRC24_LTEB:
+	case CRC24_NRC:
+	case CRC30: {
+		static CRC::Table table(CRC::CRC_30());
+		return CRC::Calculate(pData, nrBytes, table);
+	}
+	case CRC32: {
+		static CRC::Table table(CRC::CRC_32());
+		return CRC::Calculate(pData, nrBytes, table);
+	}
+	case CRC32_BZIP2:
+	case CRC32_C:
+	case CRC32_MPEG2:
+	case CRC32_POSIX:
+	case CRC32_Q:
+	case CRC40_GSM:
+	case CRC64: {
+		static CRC::Table table(CRC::CRC_64());
+		return CRC::Calculate(pData, nrBytes, table);
+	}
+	case XOR8:
+		return compute8Xor(in);
+	case XOR8_MASK_MAJOR_BIT:
+		return compute8Xor(in, 0x7F);
+	default:
+		assert(0);
+		break;
+	}
+}
+
 int main(int argc, const char **argv) {
 
 	/*	*/
@@ -199,9 +316,8 @@ int main(int argc, const char **argv) {
 			return EXIT_SUCCESS;
 		}
 		if (result.count("version") > 0) {
-			std::cout << "Version: " << CRC_ANALYSIS_STR <<
-			" hash: " << CRC_ANALYSIS_GITCOMMIT_STR
-				<< " branch: " << CRC_ANALYSIS_GITBRANCH_TR << std::endl;
+			std::cout << "Version: " << CRC_ANALYSIS_STR << " hash: " << CRC_ANALYSIS_GITCOMMIT_STR
+					  << " branch: " << CRC_ANALYSIS_GITBRANCH_TR << std::endl;
 			return EXIT_SUCCESS;
 		}
 
@@ -231,7 +347,6 @@ int main(int argc, const char **argv) {
 		scheduler.bind();
 		defer(scheduler.unbind()); // Automatically unbind before returning.
 
-		// TODO
 		/*	Create lookup table.	*/
 		do {
 
@@ -252,43 +367,10 @@ int main(int argc, const char **argv) {
 						setFlippedBitErrors(originalMsg, MsgWithError, randGen, nrBitError);
 
 						std::uint64_t originalMsgCRC, errorMsgCRC;
-						switch (crcAlgorithm) {
-						case CRC7:
-							originalMsgCRC = CRC::Calculate(originalMsg.data(),
-															originalMsg.size() * sizeof(unsigned int), CRC::CRC_7());
-							errorMsgCRC = CRC::Calculate(MsgWithError.data(),
-														 MsgWithError.size() * sizeof(unsigned int), CRC::CRC_7());
-							break;
-						case CRC8:
-							originalMsgCRC = CRC::Calculate(originalMsg.data(),
-															originalMsg.size() * sizeof(unsigned int), CRC::CRC_8());
-							errorMsgCRC = CRC::Calculate(MsgWithError.data(),
-														 MsgWithError.size() * sizeof(unsigned int), CRC::CRC_8());
-							break;
-						case CRC10:
-							originalMsgCRC = CRC::Calculate(originalMsg.data(),
-															originalMsg.size() * sizeof(unsigned int), CRC::CRC_10());
-							errorMsgCRC = CRC::Calculate(MsgWithError.data(),
-														 MsgWithError.size() * sizeof(unsigned int), CRC::CRC_10());
-						case CRC11:
-						case CRC15:
-						case CRC24:
-						case CRC30:
-						case CRC32:
-						case CRC64:
-							break;
-						case XOR8:
-							originalMsgCRC = compute8Xor(originalMsg);
-							errorMsgCRC = compute8Xor(MsgWithError);
-							break;
-						case XOR8_MASK_MAJOR_BIT:
-							originalMsgCRC = compute8Xor(originalMsg, 0x7F);
-							errorMsgCRC = compute8Xor(MsgWithError, 0x7F);
-							break;
 
-						default:
-							assert(0);
-						}
+						/*	*/
+						originalMsgCRC = computeCRC(crcAlgorithm, originalMsg);
+						errorMsgCRC = computeCRC(crcAlgorithm, MsgWithError);
 
 						/*	If message are not equal but the CRC are equal means that there was a incorrect CRC!	*/
 						if (!isArrayEqual(originalMsg, MsgWithError) && originalMsgCRC == errorMsgCRC) {

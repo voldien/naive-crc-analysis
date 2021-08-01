@@ -6,10 +6,11 @@ A simple program to test how various CRC error detection capabilities depending 
 messages and an its respective error message with n number of bit errors. Afterward, compute the CRC for both the untouched message and the error message and check if they are not equal.
 Because if equal, it means a collision has occurred, which would mean that the software using the CRC think it is a valid message.
 
-# Installation
+## Installation
 
 First clone the project followed by updating the git submodules used in this project, which are required in order to compile the program.
-```
+
+```bash
 git clone <this repo url>
 cd <git workspace>
 git submodule update --init --recursive
@@ -17,7 +18,7 @@ git submodule update --init --recursive
 
 Afterward, it is as simple as follow the following commands.
 
-```
+```bash
 mkdir build && cd build
 cmake ..
 make
@@ -26,22 +27,25 @@ make
 The executable can be located in the bin directory as *Analysis*.
 
 
-# Examples
+## Examples
 
-```
+```bash
 CRCAnalysis --samples=100000000 --data-chunk-size=256 -m 1 --crc=xor8
 ```
 
-```
+```bash
 CRCAnalysis --samples=100000000 --data-chunk-size=256 --tasks=10000 -m 2 --crc=xor8
 ```
 
 The support command line options can be view with the following command.
-```
+
+```bash
 CRCAnalysis --help
 ```
+
 A example output can be the following.
-```
+
+```bash
 Naive CRC Analysis
 A simple program for checking error detection
 Usage:

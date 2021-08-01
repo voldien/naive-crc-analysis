@@ -529,7 +529,6 @@ int main(int argc, const char **argv) {
 		scheduler.bind();
 		defer(scheduler.unbind()); // Automatically unbind before returning.
 
-		/*	Create lookup table.	*/
 		do {
 
 			// Create an event that is manually reset.

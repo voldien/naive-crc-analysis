@@ -4,7 +4,7 @@
 
 A simple program to test how various CRC error detection capabilities depending on how much error is introduced. The program will create an n-number of
 messages and an its respective error message with n number of bit errors. Afterward, compute the CRC for both the untouched message and the error message and check if they are not equal.
-Because if equal, it means a collision has occurred, which would mean that the software using the CRC think it is a valid message. 
+Because if equal, it means a collision has occurred, which would mean that the software using the CRC think it is a valid message.
 
 # Installation
 
@@ -32,6 +32,10 @@ The executable can be located in the bin directory as *Analysis*.
 CRCAnalysis --samples=100000000 --data-chunk-size=256 -m 1 --crc=xor8
 ```
 
+```
+CRCAnalysis --samples=100000000 --data-chunk-size=256 --tasks=10000 -m 2 --crc=xor8
+```
+
 The support command line options can be view with the following command.
 ```
 CRCAnalysis --help
@@ -52,4 +56,5 @@ Usage:
   -t, --tasks arg               Task (default: 2000)
   -m, --number-of-bit-error arg
                                 Number of bit error per message (default: 1)
+  -f, --forever                 Run it forever
 ```

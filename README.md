@@ -3,7 +3,7 @@
 [![GitHub release](https://img.shields.io/github/release/voldien/naive-crc-analysis.svg)](https://github.com/voldien/naive-crc-analysis/releases)
 
 A simple program to test how various CRC error detection capabilities depending on how much error is introduced. The program will create an n-number of
-messages and an its respective error message with n number of bit errors. Afterward, compute the CRC for both the untouched message and the error message and check if they are not equal.
+messages and its respective error message with n number of bit errors. Afterward, compute the CRC for both the untouched message and the error message and check if they are not equal.
 Because if equal, it means a collision has occurred, which would mean that the software using the CRC think it is a valid message.
 
 ## Installation
@@ -43,7 +43,7 @@ The support command line options can be view with the following command.
 CRCAnalysis --help
 ```
 
-A example output can be the following.
+An example output can be the following.
 
 ```bash
 Naive CRC Analysis

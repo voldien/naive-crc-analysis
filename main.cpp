@@ -481,14 +481,15 @@ int main(int argc, const char **argv) {
 									   "";
 
 		cxxopts::Options options("CRCAnalysis", helperInfo);
-		options.add_options()("v,version", "Version information")("h,help", "helper information")(
-			"c,crc", "CRC", cxxopts::value<std::string>()->default_value("crc8"))(
-			"p,data-chunk-size", "DataChunk", cxxopts::value<uint32_t>()->default_value("5"))(
-			"e,error-correction", "Perform Error Correction", cxxopts::value<bool>()->default_value("false"))(
+		options.add_options()("v,version", "Version information")("h,help", "helper information.")(
+			"c,crc", "CRC Algorithm", cxxopts::value<std::string>()->default_value("crc8"))(
+			"p,message-data-size", "Size of each messages in bytes.", cxxopts::value<uint32_t>()->default_value("5"))(
+			"e,error-correction", "Perform Error Correction.", cxxopts::value<bool>()->default_value("false"))(
 			"s,samples", "Samples", cxxopts::value<uint64_t>()->default_value("1000000"))(
 			"t,tasks", "Task", cxxopts::value<int>()->default_value("2000"))(
-			"m,number-of-bit-error", "Number of bit error per message", cxxopts::value<int>()->default_value("1"))(
-			"f,forever", "Run it forever", cxxopts::value<bool>()->default_value("false"));
+			"b,nr-of-error-bits", "Number of bits error added to each message",
+			cxxopts::value<int>()->default_value("1"))("f,forever", "Run it forever",
+													   cxxopts::value<bool>()->default_value("false"));
 
 		auto result = options.parse(argc, (char **&)argv);
 
@@ -504,10 +505,10 @@ int main(int argc, const char **argv) {
 		}
 
 		/*	*/
-		dataSize = result["data-chunk-size"].as<uint32_t>();
+		dataSize = result["message-data-size"].as<uint32_t>();
 		samples = result["samples"].as<uint64_t>();
 		nrChunk = result["tasks"].as<int>();
-		nrBitError = result["number-of-bit-error"].as<int>();
+		nrBitError = result["nr-of-error-bits"].as<int>();
 		bool runForever = result["forever"].as<bool>();
 
 		/*	*/

@@ -1,4 +1,5 @@
 # Naive CRC Analysis Tool
+
 [![Actions Build Status](https://github.com/voldien/naive-crc-analysis/workflows/crc-collision-anlysis/badge.svg?branch=master)](https://github.com/voldien/naive-crc-analysis/actions)
 [![GitHub release](https://img.shields.io/github/release/voldien/naive-crc-analysis.svg)](https://github.com/voldien/naive-crc-analysis/releases)
 
@@ -26,7 +27,6 @@ make
 
 The executable can be located in the bin directory as *Analysis*.
 
-
 ## Examples
 
 ```bash
@@ -51,14 +51,14 @@ A simple program for checking error detection
 Usage:
   CRCAnalysis [OPTION...]
 
-  -v, --version                 Version information
-  -h, --help                    helper information
-  -c, --crc arg                 CRC (default: crc8)
-  -p, --data-chunk-size arg     DataChunk (default: 5)
-  -e, --error-correction        Perform Error Correction
-  -s, --samples arg             Samples (default: 1000000)
-  -t, --tasks arg               Task (default: 2000)
-  -m, --number-of-bit-error arg
-                                Number of bit error per message (default: 1)
-  -f, --forever                 Run it forever
+  -v, --version                Version information
+  -h, --help                   helper information.
+  -c, --crc arg                CRC Algorithm (default: crc8)
+  -p, --message-data-size arg  Size of each messages in bytes. (default: 5)
+  -e, --error-correction       Perform Error Correction.
+  -s, --samples arg            Samples (default: 1000000)
+  -t, --tasks arg              Task (default: 2000)
+  -b, --nr-of-error-bits arg   Number of bits error added to each message
+                               (default: 1)
+  -f, --forever                Run it forever
 ```

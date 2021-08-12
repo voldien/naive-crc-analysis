@@ -9,11 +9,8 @@
 #include "revision.h"
 #include <CRC.h>
 #include <cassert>
-#include <cstdint> // Includes ::std::uint32_t
 #include <cstring>
 #include <cxxopts.hpp>
-#include <iomanip>	// Includes ::std::hex
-#include <iostream> // Includes ::std::cout
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>

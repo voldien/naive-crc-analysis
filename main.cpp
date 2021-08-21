@@ -142,14 +142,6 @@ static std::unordered_map<std::string, CRCAlgorithm> const table = {
 	{"xor8", CRCAlgorithm::XOR8},
 	{"xor8_masked", CRCAlgorithm::XOR8_MASK_MAJOR_BIT}};
 
-template <typename T> static uint32_t compute32Xor(const std::vector<T> &data) {
-	uint32_t checksum = data[0];
-	for (int i = 1; i < data.size(); i++) {
-		checksum ^= data[i];
-	}
-	return checksum;
-}
-
 template <typename T> static uint8_t compute8Xor(const std::vector<T> &data, uint8_t mask = 0xFF) {
 	uint8_t *p = (uint8_t *)data.data();
 	uint8_t checksum = p[0];
@@ -460,6 +452,8 @@ template <typename T> static bool isArrayEqual(const std::vector<T> &in, const s
 	return true;
 }
 
+typedef uint32_t CRCInt;
+
 int main(int argc, const char **argv) {
 
 	/*	*/
@@ -502,7 +496,7 @@ int main(int argc, const char **argv) {
 		}
 
 		/*	*/
-		dataSize = result["message-data-size"].as<uint32_t>();
+		dataSize = result["message-data-size"].as<uint32_t>() / sizeof(CRCInt);
 		samples = result["samples"].as<uint64_t>();
 		nrChunk = result["tasks"].as<int>();
 		nrBitError = result["nr-of-error-bits"].as<int>();
@@ -536,8 +530,8 @@ int main(int argc, const char **argv) {
 
 			for (uint32_t nthTask = 0; nthTask < numTasks; nthTask++) {
 				marl::schedule([&] { // All marl primitives are capture-by-value.
-					std::vector<unsigned int> originalMsg(dataSize);
-					std::vector<unsigned int> MsgWithError(dataSize);
+					std::vector<CRCInt> originalMsg(dataSize);
+					std::vector<CRCInt> MsgWithError(dataSize);
 					PGSRandom randGen;
 
 					/*	*/

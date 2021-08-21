@@ -2,6 +2,7 @@
 
 [![Actions Build Status](https://github.com/voldien/naive-crc-analysis/workflows/crc-collision-anlysis/badge.svg?branch=master)](https://github.com/voldien/naive-crc-analysis/actions)
 [![GitHub release](https://img.shields.io/github/release/voldien/naive-crc-analysis.svg)](https://github.com/voldien/naive-crc-analysis/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A simple program to test how various CRC error detection capabilities depending on how much error is introduced. The program will create an n-number of
 messages and its respective error message with n number of bit errors. Afterward, compute the CRC for both the untouched message and the error message and check if they are not equal.

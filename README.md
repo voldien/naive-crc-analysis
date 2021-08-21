@@ -31,11 +31,11 @@ The executable can be located in the bin directory as *Analysis*.
 ## Examples
 
 ```bash
-CRCAnalysis --samples=100000000 --data-chunk-size=256 -m 1 --crc=xor8
+CRCAnalysis --samples=100000000 --message-data-size=256 -b 1 --crc=xor8
 ```
 
 ```bash
-CRCAnalysis --samples=100000000 --data-chunk-size=256 --tasks=10000 -m 2 --crc=xor8
+CRCAnalysis --samples=100000000 --message-data-size=256 --tasks=10000 -b 2 --crc=xor8
 ```
 
 The support command line options can be view with the following command.

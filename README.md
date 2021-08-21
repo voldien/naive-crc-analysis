@@ -1,7 +1,7 @@
 # Naive CRC Analysis Tool
 
 [![Actions Build Status](https://github.com/voldien/naive-crc-analysis/workflows/crc-collision-anlysis/badge.svg?branch=master)](https://github.com/voldien/naive-crc-analysis/actions)
-[![GitHub release](https://img.shields.io/github/release/voldien/naive-crc-analysis.svg)](https://github.com/voldien/naive-crc-analysis/releases)
+[![GitHub release](https://img.shields.io/github/release/voldien/naive-crc-analysis.svg)](https://GitHub.com/voldien/naive-crc-analysis/releases/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A simple program to test how various CRC error detection capabilities depending on how much error is introduced. The program will create an n-number of

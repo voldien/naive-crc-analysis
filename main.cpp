@@ -74,6 +74,8 @@ enum CRCAlgorithm {
 	CRC40_GSM,
 	CRC64,
 	XOR8,
+	XOR16,
+	XOR32,
 	XOR8_MASK_MAJOR_BIT,
 };
 
@@ -140,16 +142,22 @@ static std::unordered_map<std::string, CRCAlgorithm> const table = {
 	{"crc40_gsm", CRCAlgorithm::CRC40_GSM},
 	{"crc64", CRCAlgorithm::CRC64},
 	{"xor8", CRCAlgorithm::XOR8},
+	{"xor16", CRCAlgorithm::XOR16},
+	{"xor32", CRCAlgorithm::XOR32},
 	{"xor8_masked", CRCAlgorithm::XOR8_MASK_MAJOR_BIT}};
 
-template <typename T> static uint8_t compute8Xor(const std::vector<T> &data, uint8_t mask = 0xFF) {
-	uint8_t *p = (uint8_t *)data.data();
-	uint8_t checksum = p[0];
-	const uint32_t nrBytes = data.size() * sizeof(T);
+template <typename Result, size_t n = 8, typename T>
+static Result computeXOR(const std::vector<T> &data, Result mask = 0xFF) {
+	Result *p = (Result *)data.data();
+	Result checksum = p[0];
+	const uint32_t dataSizeInBytes = data.size() * sizeof(T);
+	const uint32_t blockSize = (n / 8);
 
-	for (size_t i = 1; i < nrBytes; i++) {
+	for (size_t i = 1; i < dataSizeInBytes / blockSize; i++) {
 		checksum ^= p[i];
 	}
+
+	/*	*/
 	return checksum & mask;
 }
 
@@ -387,9 +395,13 @@ template <typename T> static uint64_t computeCRC(CRCAlgorithm algorithm, const s
 		return CRC::Calculate(pData, nrBytes, table);
 	}
 	case XOR8:
-		return compute8Xor(in);
+		return computeXOR<uint8_t,8>(in);
+	case XOR16:
+		return computeXOR<uint16_t,16>(in);
+	case XOR32:
+		return computeXOR<uint32_t,32>(in);
 	case XOR8_MASK_MAJOR_BIT:
-		return compute8Xor(in, 0x7F);
+		return computeXOR<uint8_t,8>(in, 0x7F);
 	default:
 		assert(0);
 		break;
@@ -500,6 +512,7 @@ int main(int argc, const char **argv) {
 			for (; bit != table.end(); bit++) {
 				std::cout << (*bit).first << std::endl;
 			}
+			return EXIT_SUCCESS;
 		}
 
 		/*	*/

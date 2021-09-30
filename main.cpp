@@ -480,7 +480,8 @@ int main(int argc, const char **argv) {
 			"t,tasks", "Task", cxxopts::value<int>()->default_value("2000"))(
 			"b,nr-of-error-bits", "Number of bits error added to each message",
 			cxxopts::value<int>()->default_value("1"))("f,forever", "Run it forever",
-													   cxxopts::value<bool>()->default_value("false"));
+													   cxxopts::value<bool>()->default_value("false"))(
+			"l,show-crc-list", "List of support CRC and Checksum Alg", cxxopts::value<bool>()->default_value("false"));
 
 		auto result = options.parse(argc, (char **&)argv);
 
@@ -493,6 +494,12 @@ int main(int argc, const char **argv) {
 			std::cout << "Version: " << CRC_ANALYSIS_STR << " hash: " << CRC_ANALYSIS_GITCOMMIT_STR
 					  << " branch: " << CRC_ANALYSIS_GITBRANCH_TR << std::endl;
 			return EXIT_SUCCESS;
+		}
+		if (result.count("show-crc-list") > 0) {
+			auto bit = table.begin();
+			for (; bit != table.end(); bit++) {
+				std::cout << (*bit).first << std::endl;
+			}
 		}
 
 		/*	*/

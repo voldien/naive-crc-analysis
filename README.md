@@ -26,7 +26,7 @@ cmake ..
 make
 ```
 
-The executable can be located in the bin directory as *Analysis*.
+The executable can be located in the bin directory as *CRCAnalysis*.
 
 ## Examples
 

@@ -404,7 +404,7 @@ template <typename T> static uint64_t computeCRC(CRCAlgorithm algorithm, const s
 		return computeXOR<uint8_t,8>(in, 0x7F);
 	default:
 		assert(0);
-		break;
+		return 0;
 	}
 }
 

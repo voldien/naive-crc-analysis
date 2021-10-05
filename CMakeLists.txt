@@ -37,17 +37,16 @@ FILE(GLOB HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 ADD_EXECUTABLE(CRCAnalysis ${SOURCE_FILES} ${HEADER_FILES} )
 TARGET_LINK_LIBRARIES(CRCAnalysis cxxopts marl)
+ADD_DEPENDENCIES(CRCAnalysis cxxopts marl)
 
 # Added external cmake sub-projects
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/extern/cxxopts EXCLUDE_FROM_ALL)
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/extern/marl EXCLUDE_FROM_ALL)
 
 TARGET_INCLUDE_DIRECTORIES(CRCAnalysis PRIVATE
-${CMAKE_CURRENT_SOURCE_DIR}/extern/marl/include
-${CMAKE_CURRENT_SOURCE_DIR}/extern/pcg-c-basic
-${CMAKE_CURRENT_SOURCE_DIR}/extern/cxxopts/include
-${CMAKE_CURRENT_SOURCE_DIR}/extern/CRCpp/inc)
-#
+	${CMAKE_CURRENT_SOURCE_DIR}/extern/pcg-c-basic
+	${CMAKE_CURRENT_SOURCE_DIR}/extern/CRCpp/inc
+)
 
 
 # Genrate the revision header.

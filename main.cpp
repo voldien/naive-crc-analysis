@@ -167,241 +167,241 @@ template <typename T> static uint64_t computeCRC(CRCAlgorithm algorithm, const s
 
 	switch (algorithm) {
 	case CRC4_ITU: {
-		static CRC::Table table(CRC::CRC_4_ITU());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc4_itu_table(CRC::CRC_4_ITU());
+		return CRC::Calculate(pData, nrBytes, crc4_itu_table);
 	}
 	case CRC5_EPC: {
-		static CRC::Table table(CRC::CRC_5_EPC());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc5_epc_table(CRC::CRC_5_EPC());
+		return CRC::Calculate(pData, nrBytes, crc5_epc_table);
 	}
 	case CRC5_ITU: {
-		static CRC::Table table(CRC::CRC_5_ITU());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc5_itu_tabletable(CRC::CRC_5_ITU());
+		return CRC::Calculate(pData, nrBytes, crc5_itu_tabletable);
 	}
 	case CRC5_USB: {
-		static CRC::Table table(CRC::CRC_5_USB());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc5_usb_table(CRC::CRC_5_USB());
+		return CRC::Calculate(pData, nrBytes, crc5_usb_table);
 	}
 	case CRC6_CDMA2000A: {
-		static CRC::Table table(CRC::CRC_6_CDMA2000A());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc6_cdma2000a_table(CRC::CRC_6_CDMA2000A());
+		return CRC::Calculate(pData, nrBytes, crc6_cdma2000a_table);
 	}
 	case CRC6_CDMA2000B: {
-		static CRC::Table table(CRC::CRC_6_CDMA2000B());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc6_cdma2000b_table(CRC::CRC_6_CDMA2000B());
+		return CRC::Calculate(pData, nrBytes, crc6_cdma2000b_table);
 	}
 	case CRC6_ITU: {
-		static CRC::Table table(CRC::CRC_6_ITU());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc6_itu_table(CRC::CRC_6_ITU());
+		return CRC::Calculate(pData, nrBytes, crc6_itu_table);
 	}
 	case CRC6_NR: {
-		static CRC::Table table(CRC::CRC_6_NR());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc6_nr_table(CRC::CRC_6_NR());
+		return CRC::Calculate(pData, nrBytes, crc6_nr_table);
 	}
 	case CRC7: {
-		static CRC::Table table(CRC::CRC_7());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc7_table(CRC::CRC_7());
+		return CRC::Calculate(pData, nrBytes, crc7_table);
 	}
 	case CRC8: {
-		static CRC::Table table(CRC::CRC_8());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc7_table(CRC::CRC_8());
+		return CRC::Calculate(pData, nrBytes, crc7_table);
 	}
 	case CRC8_EBU: {
-		static CRC::Table table(CRC::CRC_8_EBU());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc8_ebu_table(CRC::CRC_8_EBU());
+		return CRC::Calculate(pData, nrBytes, crc8_ebu_table);
 	}
 	case CRC8_MAXIM: {
-		static CRC::Table table(CRC::CRC_8_MAXIM());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc8_maxim_table(CRC::CRC_8_MAXIM());
+		return CRC::Calculate(pData, nrBytes, crc8_maxim_table);
 	}
 	case CRC8_WCDMA: {
-		static CRC::Table table(CRC::CRC_8_WCDMA());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc8_wcdma_table(CRC::CRC_8_WCDMA());
+		return CRC::Calculate(pData, nrBytes, crc8_wcdma_table);
 	}
 	case CRC8_LTE: {
-		static CRC::Table table(CRC::CRC_8_LTE());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc8_lte_table(CRC::CRC_8_LTE());
+		return CRC::Calculate(pData, nrBytes, crc8_lte_table);
 	}
 	case CRC10: {
-		static CRC::Table table(CRC::CRC_10());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc10_table(CRC::CRC_10());
+		return CRC::Calculate(pData, nrBytes, crc10_table);
 	}
 	case CRC10_CDMA2000: {
-		static CRC::Table table(CRC::CRC_10_CDMA2000());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc10_cdma2000_table(CRC::CRC_10_CDMA2000());
+		return CRC::Calculate(pData, nrBytes, crc10_cdma2000_table);
 	}
 	case CRC11: {
-		static CRC::Table table(CRC::CRC_11());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc11_table(CRC::CRC_11());
+		return CRC::Calculate(pData, nrBytes, crc11_table);
 	}
 	case CRC11_NR: {
-		static CRC::Table table(CRC::CRC_11_NR());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc11_nr_table(CRC::CRC_11_NR());
+		return CRC::Calculate(pData, nrBytes, crc11_nr_table);
 	}
 	case CRC12_CDMA2000: {
-		static CRC::Table table(CRC::CRC_12_CDMA2000());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc12_cdma2000_table(CRC::CRC_12_CDMA2000());
+		return CRC::Calculate(pData, nrBytes, crc12_cdma2000_table);
 	}
 	case CRC12_DECT: {
-		static CRC::Table table(CRC::CRC_12_DECT());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc12_dect_table(CRC::CRC_12_DECT());
+		return CRC::Calculate(pData, nrBytes, crc12_dect_table);
 	}
 	case CRC12_UMTS: {
-		static CRC::Table table(CRC::CRC_12_UMTS());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc12_umts_table(CRC::CRC_12_UMTS());
+		return CRC::Calculate(pData, nrBytes, crc12_umts_table);
 	}
 	case CRC13_BCC: {
-		static CRC::Table table(CRC::CRC_13_BBC());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc13_bcc_table(CRC::CRC_13_BBC());
+		return CRC::Calculate(pData, nrBytes, crc13_bcc_table);
 	}
 	case CRC15: {
-		static CRC::Table table(CRC::CRC_15());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc15_table(CRC::CRC_15());
+		return CRC::Calculate(pData, nrBytes, crc15_table);
 	}
 	case CRC15_MPT1327: {
-		static CRC::Table table(CRC::CRC_15_MPT1327());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc15_mpt1327_table(CRC::CRC_15_MPT1327());
+		return CRC::Calculate(pData, nrBytes, crc15_mpt1327_table);
 	}
 	case CRC16_ARC: {
-		static CRC::Table table(CRC::CRC_16_ARC());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_arc_table(CRC::CRC_16_ARC());
+		return CRC::Calculate(pData, nrBytes, crc16_arc_table);
 	}
 	case CRC16_BUYPASS: {
-		static CRC::Table table(CRC::CRC_16_BUYPASS());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_buypass_table(CRC::CRC_16_BUYPASS());
+		return CRC::Calculate(pData, nrBytes, crc16_buypass_table);
 	}
 	case CRC16_CCITTFALSE: {
-		static CRC::Table table(CRC::CRC_16_CCITTFALSE());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_ccittfalse_table(CRC::CRC_16_CCITTFALSE());
+		return CRC::Calculate(pData, nrBytes, crc16_ccittfalse_table);
 	}
 	case CRC16_CDMA2000: {
-		static CRC::Table table(CRC::CRC_16_CDMA2000());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_cdma2000_table(CRC::CRC_16_CDMA2000());
+		return CRC::Calculate(pData, nrBytes, crc16_cdma2000_table);
 	}
 	case CRC16_CMS: {
-		static CRC::Table table(CRC::CRC_16_CMS());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_cms_table(CRC::CRC_16_CMS());
+		return CRC::Calculate(pData, nrBytes, crc16_cms_table);
 	}
 	case CRC16_DECTR: {
-		static CRC::Table table(CRC::CRC_16_DECTR());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_dectr_table(CRC::CRC_16_DECTR());
+		return CRC::Calculate(pData, nrBytes, crc16_dectr_table);
 	}
 	case CRC16_DECTX: {
-		static CRC::Table table(CRC::CRC_16_DECTX());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_dectx_table(CRC::CRC_16_DECTX());
+		return CRC::Calculate(pData, nrBytes, crc16_dectx_table);
 	}
 	case CRC16_DNP: {
-		static CRC::Table table(CRC::CRC_16_DNP());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_dnp_table(CRC::CRC_16_DNP());
+		return CRC::Calculate(pData, nrBytes, crc16_dnp_table);
 	}
 	case CRC16_GENIBUS: {
-		static CRC::Table table(CRC::CRC_16_GENIBUS());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_genibus_table(CRC::CRC_16_GENIBUS());
+		return CRC::Calculate(pData, nrBytes, crc16_genibus_table);
 	}
 	case CRC16_KERMIT: {
-		static CRC::Table table(CRC::CRC_16_KERMIT());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_kermit_table(CRC::CRC_16_KERMIT());
+		return CRC::Calculate(pData, nrBytes, crc16_kermit_table);
 	}
 	case CRC16_MAXIM: {
-		static CRC::Table table(CRC::CRC_16_MAXIM());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_maxim_table(CRC::CRC_16_MAXIM());
+		return CRC::Calculate(pData, nrBytes, crc16_maxim_table);
 	}
 	case CRC16_MODBUS: {
-		static CRC::Table table(CRC::CRC_16_MODBUS());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_modbus_table(CRC::CRC_16_MODBUS());
+		return CRC::Calculate(pData, nrBytes, crc16_modbus_table);
 	}
 	case CRC16_T10DIF: {
-		static CRC::Table table(CRC::CRC_16_T10DIF());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_t10dif_table(CRC::CRC_16_T10DIF());
+		return CRC::Calculate(pData, nrBytes, crc16_t10dif_table);
 	}
 	case CRC16_USB: {
-		static CRC::Table table(CRC::CRC_16_USB());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_usb_table(CRC::CRC_16_USB());
+		return CRC::Calculate(pData, nrBytes, crc16_usb_table);
 	}
 	case CRC16_X25: {
-		static CRC::Table table(CRC::CRC_16_X25());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_x25_table(CRC::CRC_16_X25());
+		return CRC::Calculate(pData, nrBytes, crc16_x25_table);
 	}
 	case CRC16_XMODEM: {
-		static CRC::Table table(CRC::CRC_16_XMODEM());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc16_xmodem_table(CRC::CRC_16_XMODEM());
+		return CRC::Calculate(pData, nrBytes, crc16_xmodem_table);
 	}
 	case CRC17_CAN: {
-		static CRC::Table table(CRC::CRC_17_CAN());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc17_can_table(CRC::CRC_17_CAN());
+		return CRC::Calculate(pData, nrBytes, crc17_can_table);
 	}
 	case CRC21_CAN: {
-		static CRC::Table table(CRC::CRC_21_CAN());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc21_can_table(CRC::CRC_21_CAN());
+		return CRC::Calculate(pData, nrBytes, crc21_can_table);
 	}
 	case CRC24: {
-		static CRC::Table table(CRC::CRC_24());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc24_table(CRC::CRC_24());
+		return CRC::Calculate(pData, nrBytes, crc24_table);
 	}
 	case CRC24_FLEXRAYA: {
-		static CRC::Table table(CRC::CRC_24_FLEXRAYA());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc24_flexraya_table(CRC::CRC_24_FLEXRAYA());
+		return CRC::Calculate(pData, nrBytes, crc24_flexraya_table);
 	}
 	case CRC24_FLEXRAYB: {
-		static CRC::Table table(CRC::CRC_24_FLEXRAYB());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc24_flexrayb_table(CRC::CRC_24_FLEXRAYB());
+		return CRC::Calculate(pData, nrBytes, crc24_flexrayb_table);
 	}
 	case CRC24_LTEA: {
-		static CRC::Table table(CRC::CRC_24_LTEA());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc24_ltea_table(CRC::CRC_24_LTEA());
+		return CRC::Calculate(pData, nrBytes, crc24_ltea_table);
 	}
 	case CRC24_LTEB: {
-		static CRC::Table table(CRC::CRC_24_LTEB());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc24_lteb_table(CRC::CRC_24_LTEB());
+		return CRC::Calculate(pData, nrBytes, crc24_lteb_table);
 	}
 	case CRC24_NRC: {
-		static CRC::Table table(CRC::CRC_24_NRC());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc24_nrc_table(CRC::CRC_24_NRC());
+		return CRC::Calculate(pData, nrBytes, crc24_nrc_table);
 	}
 	case CRC30: {
-		static CRC::Table table(CRC::CRC_30());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc30_table(CRC::CRC_30());
+		return CRC::Calculate(pData, nrBytes, crc30_table);
 	}
 	case CRC32: {
-		static CRC::Table table(CRC::CRC_32());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc32_table(CRC::CRC_32());
+		return CRC::Calculate(pData, nrBytes, crc32_table);
 	}
 	case CRC32_BZIP2: {
-		static CRC::Table table(CRC::CRC_32_BZIP2());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc32_bzip2_table(CRC::CRC_32_BZIP2());
+		return CRC::Calculate(pData, nrBytes, crc32_bzip2_table);
 	}
 	case CRC32_C: {
-		static CRC::Table table(CRC::CRC_32_C());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc32_c_table(CRC::CRC_32_C());
+		return CRC::Calculate(pData, nrBytes, crc32_c_table);
 	}
 	case CRC32_MPEG2: {
-		static CRC::Table table(CRC::CRC_32_MPEG2());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc32_mpeg2_table(CRC::CRC_32_MPEG2());
+		return CRC::Calculate(pData, nrBytes, crc32_mpeg2_table);
 	}
 	case CRC32_POSIX: {
-		static CRC::Table table(CRC::CRC_32_POSIX());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc32_posix_table(CRC::CRC_32_POSIX());
+		return CRC::Calculate(pData, nrBytes, crc32_posix_table);
 	}
 	case CRC32_Q: {
-		static CRC::Table table(CRC::CRC_32_Q());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc32_q_table(CRC::CRC_32_Q());
+		return CRC::Calculate(pData, nrBytes, crc32_q_table);
 	}
 	case CRC40_GSM: {
-		static CRC::Table table(CRC::CRC_40_GSM());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc40_gsm_table(CRC::CRC_40_GSM());
+		return CRC::Calculate(pData, nrBytes, crc40_gsm_table);
 	}
 	case CRC64: {
-		static CRC::Table table(CRC::CRC_64());
-		return CRC::Calculate(pData, nrBytes, table);
+		static CRC::Table crc64_table(CRC::CRC_64());
+		return CRC::Calculate(pData, nrBytes, crc64_table);
 	}
 	case XOR8:
-		return computeXOR<uint8_t,8>(in);
+		return computeXOR<uint8_t, 8>(in);
 	case XOR16:
-		return computeXOR<uint16_t,16>(in);
+		return computeXOR<uint16_t, 16>(in);
 	case XOR32:
-		return computeXOR<uint32_t,32>(in);
+		return computeXOR<uint32_t, 32>(in);
 	case XOR8_MASK_MAJOR_BIT:
-		return computeXOR<uint8_t,8>(in, 0x7F);
+		return computeXOR<uint8_t, 8>(in, 0x7F);
 	default:
 		assert(0);
 		return 0;

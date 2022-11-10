@@ -42,6 +42,7 @@ enum CRCAlgorithm {
 	CRC15_MPT1327,
 	CRC16_ARC,
 	CRC16_BUYPASS,
+	CRC16_MCRF4XX,
 	CRC16_CCITTFALSE,
 	CRC16_CDMA2000,
 	CRC16_CMS,
@@ -109,6 +110,7 @@ static std::unordered_map<std::string, CRCAlgorithm> const table = {
 	{"crc15_mpt1327", CRCAlgorithm::CRC15_MPT1327},
 	{"crc16_arc", CRCAlgorithm::CRC16_ARC},
 	{"crc16_buypass", CRCAlgorithm::CRC16_BUYPASS},
+	{"crc16_mcrf4xx", CRCAlgorithm::CRC16_MCRF4XX},
 	{"crc16_ccittfalse", CRCAlgorithm::CRC16_CCITTFALSE},
 	{"crc16_cdma2000", CRCAlgorithm::CRC16_CDMA2000},
 	{"crc16_cms", CRCAlgorithm::CRC16_CMS},
@@ -269,6 +271,10 @@ template <typename T> static uint64_t computeCRC(CRCAlgorithm algorithm, const s
 	case CRC16_BUYPASS: {
 		static CRC::Table crc16_buypass_table(CRC::CRC_16_BUYPASS());
 		return CRC::Calculate(pData, nrBytes, crc16_buypass_table);
+	}
+	case CRC16_MCRF4XX: {
+		static CRC::Table crc16_mcrf4xx_table(CRC::CRC_16_MCRF4XX());
+		return CRC::Calculate(pData, nrBytes, crc16_mcrf4xx_table);
 	}
 	case CRC16_CCITTFALSE: {
 		static CRC::Table crc16_ccittfalse_table(CRC::CRC_16_CCITTFALSE());

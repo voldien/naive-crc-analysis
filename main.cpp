@@ -9,9 +9,11 @@
 #include "revision.h"
 #include <CRC.h>
 #include <cassert>
+#include <cstdint>
 #include <cstring>
 #include <cxxopts.hpp>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
@@ -151,6 +153,7 @@ static std::unordered_map<std::string, CRCAlgorithm> const table = {
 
 template <typename Result, size_t n = 8, typename T>
 static Result computeXOR(const std::vector<T> &data, Result mask = 0xFF) {
+
 	Result *p = (Result *)data.data();
 	Result checksum = p[0];
 	const uint32_t dataSizeInBytes = data.size() * sizeof(T);
@@ -417,13 +420,14 @@ template <typename T> static uint64_t computeCRC(CRCAlgorithm algorithm, const s
 
 template <typename T> void generateRandomMessage(std::vector<T> &data, unsigned int size, RandGenerator &gen) {
 	assert(data.size() <= size);
-	for (size_t i = 0; i < size; i++) {
+	for (unsigned int i = 0; i < size; i++) {
 		data[i] = gen.getRandom();
 	}
 }
 
 template <typename T>
-void setFlippedBitErrors(const std::vector<T> &in, std::vector<T> &out, RandGenerator &gen, unsigned int nrBitError) {
+void setFlippedBitErrors(const std::vector<T> &in, std::vector<T> &out, RandGenerator &gen,
+						 const unsigned int nrBitError, const float probability) {
 	const uint32_t elementNrBits = sizeof(T) * 8;
 	const uint32_t dataBitSize = in.size() * elementNrBits;
 
@@ -434,18 +438,22 @@ void setFlippedBitErrors(const std::vector<T> &in, std::vector<T> &out, RandGene
 
 	for (unsigned int i = 0; i < nrBitError; i++) {
 
-		const uint32_t bitIndex = gen.getRandom() % dataBitSize;
+		const float normalized_random_value = gen.getRandomNormalized();
 
-		/*	Convert a bit index to array index and bit offset.	*/
-		const uint32_t arrayIndex = bitIndex / elementNrBits;
-		const uint32_t bitFlipIndex = bitIndex % elementNrBits;
+		if (normalized_random_value <= probability) {
+			const uint32_t bitIndex = gen.getRandom() % dataBitSize;
 
-		/*	*/
-		assert(bitFlipIndex < elementNrBits);
-		assert(arrayIndex < out.size());
+			/*	Convert a bit index to array index and bit offset.	*/
+			const uint32_t arrayIndex = bitIndex / elementNrBits;
+			const uint32_t bitFlipIndex = bitIndex % elementNrBits;
 
-		/*	Flip a single bit.	*/
-		out[arrayIndex] ^= (1 << bitFlipIndex);
+			/*	*/
+			assert(bitFlipIndex < elementNrBits);
+			assert(arrayIndex < out.size());
+
+			/*	Flip a single bit.	*/
+			out[arrayIndex] ^= (1 << bitFlipIndex);
+		}
 	}
 }
 
@@ -481,6 +489,7 @@ int main(int argc, const char **argv) {
 		uint32_t dataSize;
 		uint32_t nrChunk;
 		uint32_t nrBitError;
+		float probablity;
 		std::atomic_uint64_t nrCollision = 0;
 		std::atomic_uint64_t nrOfSamples = 0;
 		std::atomic_uint32_t nrTaskCompleted = 0;
@@ -497,10 +506,12 @@ int main(int argc, const char **argv) {
 			"e,error-correction", "Perform Error Correction.", cxxopts::value<bool>()->default_value("false"))(
 			"s,samples", "Samples", cxxopts::value<uint64_t>()->default_value("1000000"))(
 			"t,tasks", "Task", cxxopts::value<int>()->default_value("2000"))(
-			"b,nr-of-error-bits", "Number of bits error added to each message",
-			cxxopts::value<int>()->default_value("1"))("f,forever", "Run it forever",
+			"b,nr-of-error-bits", "Number of bits error added to each message.",
+			cxxopts::value<int>()->default_value("1"))("f,forever", "Run it forever.",
 													   cxxopts::value<bool>()->default_value("false"))(
-			"l,show-crc-list", "List of support CRC and Checksum Alg", cxxopts::value<bool>()->default_value("false"));
+			"l,show-crc-list", "List of support CRC and Checksum Alg", cxxopts::value<bool>()->default_value("false"))(
+			"P,error-probability", "Probability of adding error in data package.",
+			cxxopts::value<float>()->default_value("1"));
 
 		auto result = options.parse(argc, (char **&)argv);
 
@@ -527,7 +538,8 @@ int main(int argc, const char **argv) {
 		samples = result["samples"].as<uint64_t>();
 		nrChunk = result["tasks"].as<int>();
 		nrBitError = result["nr-of-error-bits"].as<int>();
-		bool runForever = result["forever"].as<bool>();
+		probablity = result["error-probability"].as<float>();
+		const bool runForever = result["forever"].as<bool>();
 
 		/*	*/
 		const std::string &crcStr = result["crc"].as<std::string>();
@@ -539,8 +551,8 @@ int main(int argc, const char **argv) {
 		crcAlgorithm = (*foundItem).second;
 
 		/*	*/
-		uint32_t numTasks = nrChunk; /// marl::Thread::numLogicalCPUs();
-		uint64_t numLocalSamplesPTask = samples / numTasks;
+		const uint32_t numTasks = nrChunk; /// marl::Thread::numLogicalCPUs();
+		const uint64_t numLocalSamplesPTask = samples / numTasks;
 		assert(numLocalSamplesPTask > 0);
 
 		/*	*/
@@ -560,11 +572,12 @@ int main(int argc, const char **argv) {
 					std::vector<CRCInt> originalMsg(dataSize);
 					std::vector<CRCInt> MsgWithError(dataSize);
 					PGSRandom randGen;
+					UniformRandom bitRandGen;
 
 					/*	*/
 					for (uint64_t i = 0; i < numLocalSamplesPTask; i++) {
 						generateRandomMessage(originalMsg, dataSize, randGen);
-						setFlippedBitErrors(originalMsg, MsgWithError, randGen, nrBitError);
+						setFlippedBitErrors(originalMsg, MsgWithError, bitRandGen, nrBitError, probablity);
 
 						std::uint64_t originalMsgCRC, errorMsgCRC;
 
@@ -586,9 +599,10 @@ int main(int argc, const char **argv) {
 					/*	*/
 					// assert(_current_nr_samples > 0);
 					const double _collisionPerc = (double)_current_nr_collision / (double)_current_nr_samples;
-					printf("\rCRC: %s, [%d/%d] NumberOfSamples %ld, collision: [%ld,%lf] nr-error-bit %d",
+					printf("\rCRC: %s, [%d/%d] NumberOfSamples %ld, collision - count: %ld perc: %lf - nr-error-bit %d",
 						   crcStr.c_str(), _current_number_completed_task, numTasks, _current_nr_samples,
 						   _current_nr_collision, _collisionPerc, nrBitError);
+
 					fflush(stdout);
 
 					/*	*/

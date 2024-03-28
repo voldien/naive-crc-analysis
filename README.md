@@ -59,7 +59,9 @@ Usage:
   -e, --error-correction       Perform Error Correction.
   -s, --samples arg            Samples (default: 1000000)
   -t, --tasks arg              Task (default: 2000)
-  -b, --nr-of-error-bits arg   Number of bits error added to each message
+  -b, --nr-of-error-bits arg   Number of bits error added to each message. 
                                (default: 1)
-  -f, --forever                Run it forever
-```
+  -f, --forever                Run it forever.
+  -l, --show-crc-list          List of support CRC and Checksum Alg
+  -P, --error-probability arg  Probability of adding error in data package. 
+                               (default: 1)

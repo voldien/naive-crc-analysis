@@ -11,6 +11,7 @@
 #include <cassert>
 #include <cstring>
 #include <cxxopts.hpp>
+#include <iostream>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>

@@ -1,6 +1,6 @@
 # Naive CRC Analysis Tool
 
-[![Actions Build Status](https://github.com/voldien/naive-crc-analysis/workflows/crc-collision-anlysis/badge.svg?branch=master)](https://github.com/voldien/naive-crc-analysis/actions)
+[![crc-collision-anlysis](https://github.com/voldien/naive-crc-analysis/actions/workflows/cmake.yml/badge.svg)](https://github.com/voldien/naive-crc-analysis/actions/workflows/cmake.yml)
 [![GitHub release](https://img.shields.io/github/release/voldien/naive-crc-analysis.svg)](https://GitHub.com/voldien/naive-crc-analysis/releases/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
